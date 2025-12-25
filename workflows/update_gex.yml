@@ -1,0 +1,45 @@
+name: Update GEX Levels
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    # every 5 minutes
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-gex:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        with:
+          # ensure the token persists for later pushes
+          persist-credentials: true
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+
+      - name: 📦 Install
+        run: pip install -r requirements.txt
+
+      - name: 🔄 Update
+        env:
+          GEXBOT_API_KEY: ${{ secrets.GEXBOT_API_KEY }}
+        run: python update_gex.py
+
+      - name: 💾 Commit
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: Update GEX data [auto]"
+          file_pattern: "*.csv *.txt *.pine"
+          # pass the token explicitly (uses the built-in GITHUB_TOKEN)
+          github_token: ${{ secrets.GITHUB_TOKEN }}
