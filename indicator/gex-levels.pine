@@ -19,20 +19,20 @@ else if str.contains(syminfo.ticker, "ES") or str.contains(syminfo.ticker, "SPX"
     detected_ticker := "ES"
 
 
-// ==================== CONVERSION DYNAMIQUE INDEX VERS FUTURES ====================
-float spx_price = request.security("SP:SPX", timeframe.period, close, barmerge.gaps_off, barmerge.lookahead_off)
-float ndx_price = request.security("NASDAQ:NDX", timeframe.period, close, barmerge.gaps_off, barmerge.lookahead_off)
+// ==================== MULTIPLICATEURS FIXES POUR CONVERSION ====================
+float SPX_MULTIPLIER = 1.0
+float NDX_MULTIPLIER = 1.0
 
 float conversion_multiplier = 1.0
 bool needs_conversion = false
 
 if detected_ticker == "ES"
     if str.contains(syminfo.ticker, "ES") and not str.contains(syminfo.ticker, "SPX")
-        conversion_multiplier := close / spx_price
+        conversion_multiplier := SPX_MULTIPLIER
         needs_conversion := true
 else if detected_ticker == "NQ"
     if str.contains(syminfo.ticker, "NQ") and not str.contains(syminfo.ticker, "NDX")
-        conversion_multiplier := close / ndx_price
+        conversion_multiplier := NDX_MULTIPLIER
         needs_conversion := true
 
 
@@ -122,6 +122,7 @@ process_csv(string csv_data) =>
                             float strike_price_raw = str.tonumber(field0)
                             int importance = int(str.tonumber(field1))
                             if not na(strike_price_raw) and not na(importance) and importance >= 7 and importance <= 10
+                                // CONVERSION AVEC MULTIPLICATEUR FIXE
                                 float strike_price = needs_conversion ? strike_price_raw * conversion_multiplier : strike_price_raw
                                 
                                 string level_type = array.get(fields, 2)
