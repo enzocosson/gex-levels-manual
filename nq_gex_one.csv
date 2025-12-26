@@ -1,0 +1,10 @@
+strike,importance,type,label,dte,description,call_res_all,put_sup_all
+25200,10,gamma_wall_call,Gamma Wall (Call),1DTE,5 GEX,0,75.69999999999999
+25700,10,gamma_wall_put,Gamma Wall (Put),1DTE,110 GEX,0,75.69999999999999
+25300,8,call_wall,Call Wall #2,1DTE,5 GEX,0,75.69999999999999
+25480,8,call_wall,Call Wall #3,1DTE,5 GEX,0,75.69999999999999
+25560,8,call_wall,Call Wall #4,1DTE,5 GEX,0,75.69999999999999
+25800,8,put_wall,Put Wall #2,1DTE,35 GEX,0,75.69999999999999
+25900,8,put_wall,Put Wall #3,1DTE,21 GEX,0,75.69999999999999
+25600,8,put_wall,Put Wall #4,1DTE,11 GEX,0,75.69999999999999
+25160,8,max_pain,Max Pain,1DTE,Expiration Target,0,75.69999999999999

@@ -1,0 +1,20 @@
+strike,importance,type,label,dte,description,call_res_all,put_sup_all
+6850,10,gamma_wall_call,Gamma Wall (Call),1DTE,458 GEX,-0.36,9144.529999999999
+6940,10,gamma_wall_put,Gamma Wall (Put),1DTE,4689 GEX,-0.36,9144.529999999999
+6950,9,hvl,HVL #2,1DTE,4487 GEX @ 0.3% from spot,-0.36,9144.529999999999
+6945,9,hvl,HVL #3,1DTE,3669 GEX @ 0.2% from spot,-0.36,9144.529999999999
+6840,8,call_wall,Call Wall #4,1DTE,178 GEX,-0.36,9144.529999999999
+6925,8,put_wall,Put Wall #4,1DTE,2929 GEX,-0.36,9144.529999999999
+7055,8,max_pain,Max Pain,1DTE,Expiration Target,-0.36,9144.529999999999
+6890,8,call_wall,Call Wall #3,1DTE,215 GEX,-0.36,9144.529999999999
+6860,8,call_wall,Call Wall #2,1DTE,224 GEX,-0.36,9144.529999999999
+6930,7,strike_put,Put Support,1DTE,1514 GEX,-0.36,9144.529999999999
+6955,7,strike_put,Put Support,1DTE,1382 GEX,-0.36,9144.529999999999
+6915,7,strike_put,Put Support,1DTE,1382 GEX,-0.36,9144.529999999999
+6900,7,strike_put,Put Support,1DTE,1326 GEX,-0.36,9144.529999999999
+6935,7,strike_put,Put Support,1DTE,1070 GEX,-0.36,9144.529999999999
+6970,7,strike_put,Put Support,1DTE,952 GEX,-0.36,9144.529999999999
+6910,7,strike_put,Put Support,1DTE,901 GEX,-0.36,9144.529999999999
+6920,7,strike_put,Put Support,1DTE,796 GEX,-0.36,9144.529999999999
+6975,7,strike_put,Put Support,1DTE,393 GEX,-0.36,9144.529999999999
+6960,7,strike_put,Put Support,1DTE,1473 GEX,-0.36,9144.529999999999
