@@ -1,9 +1,9 @@
 name: Update GEX Levels
 
 on:
-  # Se lance toutes les 1 minute automatiquement
+  # Se lance toutes les 5 minutes automatiquement
   schedule:
-    - cron: "*/1 * * * *"
+    - cron: "*/5 * * * *"
   # Permet de lancer manuellement
   workflow_dispatch:
 
