@@ -14,7 +14,7 @@ from config import *
 # ==================== CONFIGURATION ====================
 TICKERS = {
     'SPX': {'target': 'ES', 'description': 'SPX GEX for ES Futures', 'multiplier': 1.00685},
-    'NDX': {'target': 'NQ', 'description': 'NDX GEX for NQ Futures', 'multiplier': 1.0083}
+    'NDX': {'target': 'NQ', 'description': 'NDX GEX for NQ Futures', 'multiplier': 1.00842}
 }
 
 
@@ -271,23 +271,6 @@ else if str.contains(syminfo.ticker, "ES") or str.contains(syminfo.ticker, "SPX"
 
 // ==================== PARAMÈTRES ====================
 string selected_dte = input.string("0DTE", "📅 DTE Period", options=["0DTE", "1DTE", "FULL"], group="🎯 Settings", tooltip="Days To Expiration")
-
-
-// ==================== MULTIPLICATEURS AJUSTABLES ====================
-float spx_multiplier_input = input.float({spx_multiplier}, "SPX to ES Multiplier", minval=0.95, maxval=1.05, step=0.00001, group="🔢 Conversion", tooltip="Multiplicateur pour convertir niveaux SPX vers ES")
-float ndx_multiplier_input = input.float({ndx_multiplier}, "NDX to NQ Multiplier", minval=0.95, maxval=1.05, step=0.00001, group="🔢 Conversion", tooltip="Multiplicateur pour convertir niveaux NDX vers NQ")
-
-float conversion_multiplier = 1.0
-bool needs_conversion = false
-
-if detected_ticker == "ES"
-    if str.contains(syminfo.ticker, "ES") and not str.contains(syminfo.ticker, "SPX")
-        conversion_multiplier := spx_multiplier_input
-        needs_conversion := true
-else if detected_ticker == "NQ"
-    if str.contains(syminfo.ticker, "NQ") and not str.contains(syminfo.ticker, "NDX")
-        conversion_multiplier := ndx_multiplier_input
-        needs_conversion := true
 
 
 // ==================== FILTRES PAR IMPORTANCE ====================
