@@ -1,20 +1,20 @@
-strike,importance,type,label,dte,description,call_res_all,put_sup_all
-6925.26,10,gamma_flip,Zero Gamma,0DTE,Negative Gamma,2442940.1799999992,199045.23000000004
-6930.0,10,gamma_wall_call,Gamma Wall (Call),0DTE,2060619 GEX,2442940.1799999992,199045.23000000004
-6920.0,10,gamma_wall_put,Gamma Wall (Put),0DTE,68466 GEX,2442940.1799999992,199045.23000000004
-6935.0,9,hvl,HVL #2,0DTE,162158 GEX @ 0.1% from spot,2442940.1799999992,199045.23000000004
-6925.0,9,put_sup_0dte,PutSup0DTE #2,0DTE,Support 0DTE: 64259 GEX,2442940.1799999992,199045.23000000004
-6923.8,9,call_wall_api,Call Wall (Vol API),0DTE,Major from API,2442940.1799999992,199045.23000000004
-6700.0,8,call_wall_api,Call Wall (OI API),0DTE,Major from API,2442940.1799999992,199045.23000000004
-6940.0,8,call_wall,Call Wall #3,0DTE,55304 GEX,2442940.1799999992,199045.23000000004
-6950.0,8,call_wall,Call Wall #4,0DTE,31706 GEX,2442940.1799999992,199045.23000000004
-6915.0,8,put_wall,Put Wall #3,0DTE,16819 GEX,2442940.1799999992,199045.23000000004
-6910.0,8,put_wall,Put Wall #4,0DTE,9055 GEX,2442940.1799999992,199045.23000000004
-7145.0,8,max_pain,Max Pain,0DTE,Expiration Target,2442940.1799999992,199045.23000000004
-7000.0,7,strike_call,Call Resist,0DTE,20860 GEX,2442940.1799999992,199045.23000000004
-6955.0,7,strike_call,Call Resist,0DTE,17251 GEX,2442940.1799999992,199045.23000000004
-6945.0,7,strike_call,Call Resist,0DTE,20662 GEX,2442940.1799999992,199045.23000000004
-6960.0,7,strike_call,Call Resist,0DTE,13729 GEX,2442940.1799999992,199045.23000000004
-6975.0,7,strike_call,Call Resist,0DTE,8604 GEX,2442940.1799999992,199045.23000000004
-6970.0,7,strike_call,Call Resist,0DTE,8508 GEX,2442940.1799999992,199045.23000000004
-6980.0,7,strike_call,Call Resist,0DTE,6255 GEX,2442940.1799999992,199045.23000000004
+strike,importance,type,label,dte,description
+6925.26,10,volatility_trigger,Volatility Trigger,0DTE,Gamma flip point - Negative Gamma
+6920.0,10,major_put_wall,Major Put Wall,0DTE,Primary support - 68466 GEX
+6930.0,10,major_call_wall,Major Call Wall,0DTE,Primary resistance - 2060619 GEX
+6935.0,9,high_vol_level,High Vol Level #2,0DTE,HVL zone - 162158 GEX @ 0.1% from spot
+6925.0,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 64259 GEX
+6923.8,9,put_wall_volume,Put Wall (Volume),0DTE,Major put wall detected via volume
+6950.0,8,call_resistance,Call Resistance #4,0DTE,Secondary call wall - 31706 GEX
+6910.0,8,put_support,Put Support #4,0DTE,Secondary put wall - 9055 GEX
+6915.0,8,put_support,Put Support #3,0DTE,Secondary put wall - 16819 GEX
+6940.0,8,call_resistance,Call Resistance #3,0DTE,Secondary call wall - 55304 GEX
+6700.0,8,put_wall_oi,Put Wall (OI),0DTE,Major put wall detected via open interest
+7145.0,8,max_pain_level,Max Pain Level,0DTE,Expiration target - minimum GEX strike
+7000.0,7,strike_call,Call Strike,0DTE,Individual call resistance - 20860 GEX
+6945.0,7,strike_call,Call Strike,0DTE,Individual call resistance - 20662 GEX
+6955.0,7,strike_call,Call Strike,0DTE,Individual call resistance - 17251 GEX
+6960.0,7,strike_call,Call Strike,0DTE,Individual call resistance - 13729 GEX
+6975.0,7,strike_call,Call Strike,0DTE,Individual call resistance - 8604 GEX
+6970.0,7,strike_call,Call Strike,0DTE,Individual call resistance - 8508 GEX
+6980.0,7,strike_call,Call Strike,0DTE,Individual call resistance - 6255 GEX
