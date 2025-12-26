@@ -1,0 +1,122 @@
+//@version=6
+indicator("GEX Professional Levels - Auto Updated", overlay=true, max_lines_count=500, max_labels_count=500)
+
+// ==================== CSV DATA (AUTO-GENERATED) ====================
+string es_csv_zero = "strike,importance,type,label,dte,description,call_res_all,put_sup_all\n6940,10,gamma_wall_call,Gamma Wall (Call),1DTE,4689 GEX,19647.219999999998,2529.1099999999997\n6850,10,gamma_wall_put,Gamma Wall (Put),1DTE,458 GEX,19647.219999999998,2529.1099999999997\n6950,9,hvl,HVL #2,1DTE,4487 GEX @ 0.3% from spot,19647.219999999998,2529.1099999999997\n6945,9,hvl,HVL #3,1DTE,3669 GEX @ 0.2% from spot,19647.219999999998,2529.1099999999997\n6890,8,put_wall,Put Wall #3,1DTE,215 GEX,19647.219999999998,2529.1099999999997\n6840,8,put_wall,Put Wall #4,1DTE,178 GEX,19647.219999999998,2529.1099999999997\n7055,8,max_pain,Max Pain,1DTE,Expiration Target,19647.219999999998,2529.1099999999997\n6860,8,put_wall,Put Wall #2,1DTE,224 GEX,19647.219999999998,2529.1099999999997\n6925,8,call_wall,Call Wall #4,1DTE,2929 GEX,19647.219999999998,2529.1099999999997\n6930,7,strike_call,Call Resist,1DTE,1514 GEX,19647.219999999998,2529.1099999999997\n6955,7,strike_call,Call Resist,1DTE,1382 GEX,19647.219999999998,2529.1099999999997\n6915,7,strike_call,Call Resist,1DTE,1382 GEX,19647.219999999998,2529.1099999999997\n6900,7,strike_call,Call Resist,1DTE,1326 GEX,19647.219999999998,2529.1099999999997\n6935,7,strike_call,Call Resist,1DTE,1070 GEX,19647.219999999998,2529.1099999999997\n6970,7,strike_call,Call Resist,1DTE,952 GEX,19647.219999999998,2529.1099999999997\n6910,7,strike_call,Call Resist,1DTE,901 GEX,19647.219999999998,2529.1099999999997\n6920,7,strike_call,Call Resist,1DTE,796 GEX,19647.219999999998,2529.1099999999997\n6975,7,strike_call,Call Resist,1DTE,393 GEX,19647.219999999998,2529.1099999999997\n6960,7,strike_call,Call Resist,1DTE,1473 GEX,19647.219999999998,2529.1099999999997\n"
+string es_csv_one = "strike,importance,type,label,dte,description,call_res_all,put_sup_all\n6930,10,gamma_wall_call,Gamma Wall (Call),1DTE,1982 GEX,9926.58,1891.5900000000001\n6840,10,gamma_wall_put,Gamma Wall (Put),1DTE,252 GEX,9926.58,1891.5900000000001\n6960,9,hvl,HVL #2,1DTE,1830 GEX @ 0.4% from spot,9926.58,1891.5900000000001\n6915,9,hvl,HVL #3,1DTE,1426 GEX @ 0.2% from spot,9926.58,1891.5900000000001\n6850,8,put_wall,Put Wall #3,1DTE,187 GEX,9926.58,1891.5900000000001\n6825,8,put_wall,Put Wall #4,1DTE,186 GEX,9926.58,1891.5900000000001\n7080,8,max_pain,Max Pain,1DTE,Expiration Target,9926.58,1891.5900000000001\n6880,8,put_wall,Put Wall #2,1DTE,211 GEX,9926.58,1891.5900000000001\n6970,8,call_wall,Call Wall #4,1DTE,1355 GEX,9926.58,1891.5900000000001\n6975,7,strike_call,Call Resist,1DTE,1316 GEX,9926.58,1891.5900000000001\n6950,7,strike_call,Call Resist,1DTE,1254 GEX,9926.58,1891.5900000000001\n6925,7,strike_call,Call Resist,1DTE,959 GEX,9926.58,1891.5900000000001\n6945,7,strike_call,Call Resist,1DTE,792 GEX,9926.58,1891.5900000000001\n6965,7,strike_call,Call Resist,1DTE,590 GEX,9926.58,1891.5900000000001\n6955,7,strike_call,Call Resist,1DTE,393 GEX,9926.58,1891.5900000000001\n7000,7,strike_call,Call Resist,1DTE,374 GEX,9926.58,1891.5900000000001\n6940,7,strike_call,Call Resist,1DTE,323 GEX,9926.58,1891.5900000000001\n6935,7,strike_call,Call Resist,1DTE,290 GEX,9926.58,1891.5900000000001\n6910,7,strike_call,Call Resist,1DTE,265 GEX,9926.58,1891.5900000000001\n6980,7,strike_call,Call Resist,1DTE,986 GEX,9926.58,1891.5900000000001\n"
+string es_csv_full = "strike,importance,type,label,dte,description,call_res_all,put_sup_all\n7000,10,gamma_wall_call,Gamma Wall (Call),1DTE,18436 GEX,101366.74999999999,10280.770000000004\n6700,10,gamma_wall_put,Gamma Wall (Put),1DTE,1415 GEX,101366.74999999999,10280.770000000004\n6950,9,hvl,HVL #2,1DTE,15313 GEX @ 0.3% from spot,101366.74999999999,10280.770000000004\n6925,9,hvl,HVL #3,1DTE,9170 GEX @ 0.1% from spot,101366.74999999999,10280.770000000004\n6835,8,put_wall,Put Wall #3,1DTE,1097 GEX,101366.74999999999,10280.770000000004\n6750,8,put_wall,Put Wall #4,1DTE,907 GEX,101366.74999999999,10280.770000000004\n7165,8,max_pain,Max Pain,1DTE,Expiration Target,101366.74999999999,10280.770000000004\n6825,8,put_wall,Put Wall #2,1DTE,1384 GEX,101366.74999999999,10280.770000000004\n6940,8,call_wall,Call Wall #4,1DTE,7107 GEX,101366.74999999999,10280.770000000004\n6970,7,strike_call,Call Resist,1DTE,6103 GEX,101366.74999999999,10280.770000000004\n6975,7,strike_call,Call Resist,1DTE,6091 GEX,101366.74999999999,10280.770000000004\n6900,7,strike_call,Call Resist,1DTE,5825 GEX,101366.74999999999,10280.770000000004\n6960,7,strike_call,Call Resist,1DTE,5780 GEX,101366.74999999999,10280.770000000004\n6980,7,strike_call,Call Resist,1DTE,5543 GEX,101366.74999999999,10280.770000000004\n6930,7,strike_call,Call Resist,1DTE,4327 GEX,101366.74999999999,10280.770000000004\n6955,7,strike_call,Call Resist,1DTE,4031 GEX,101366.74999999999,10280.770000000004\n7050,7,strike_call,Call Resist,1DTE,3765 GEX,101366.74999999999,10280.770000000004\n7100,7,strike_call,Call Resist,1DTE,3649 GEX,101366.74999999999,10280.770000000004\n6915,7,strike_call,Call Resist,1DTE,3164 GEX,101366.74999999999,10280.770000000004\n6945,7,strike_call,Call Resist,1DTE,6086 GEX,101366.74999999999,10280.770000000004\n"
+string nq_csv_zero = "strike,importance,type,label,dte,description,call_res_all,put_sup_all\n25700,10,gamma_wall_call,Gamma Wall (Call),1DTE,594 GEX,1202.2099999999996,358.38000000000005\n25625,10,gamma_wall_put,Gamma Wall (Put),1DTE,90 GEX,1202.2099999999996,358.38000000000005\n25600,8,call_wall,Call Wall #2,1DTE,373 GEX,1202.2099999999996,358.38000000000005\n25800,8,call_wall,Call Wall #3,1DTE,274 GEX,1202.2099999999996,358.38000000000005\n25620,8,call_wall,Call Wall #4,1DTE,157 GEX,1202.2099999999996,358.38000000000005\n25725,8,put_wall,Put Wall #2,1DTE,57 GEX,1202.2099999999996,358.38000000000005\n25540,8,put_wall,Put Wall #3,1DTE,30 GEX,1202.2099999999996,358.38000000000005\n25450,8,put_wall,Put Wall #4,1DTE,28 GEX,1202.2099999999996,358.38000000000005\n25190,8,max_pain,Max Pain,1DTE,Expiration Target,1202.2099999999996,358.38000000000005\n"
+string nq_csv_one = "strike,importance,type,label,dte,description,call_res_all,put_sup_all\n25700,10,gamma_wall_call,Gamma Wall (Call),1DTE,110 GEX,227.79000000000005,39.99\n25200,10,gamma_wall_put,Gamma Wall (Put),1DTE,5 GEX,227.79000000000005,39.99\n25800,8,call_wall,Call Wall #2,1DTE,35 GEX,227.79000000000005,39.99\n25900,8,call_wall,Call Wall #3,1DTE,21 GEX,227.79000000000005,39.99\n25600,8,call_wall,Call Wall #4,1DTE,11 GEX,227.79000000000005,39.99\n25300,8,put_wall,Put Wall #2,1DTE,5 GEX,227.79000000000005,39.99\n25480,8,put_wall,Put Wall #3,1DTE,5 GEX,227.79000000000005,39.99\n25560,8,put_wall,Put Wall #4,1DTE,5 GEX,227.79000000000005,39.99\n25160,8,max_pain,Max Pain,1DTE,Expiration Target,227.79000000000005,39.99\n"
+string nq_csv_full = "strike,importance,type,label,dte,description,call_res_all,put_sup_all\n25250,10,gamma_wall_call,Gamma Wall (Call),1DTE,959 GEX,2782.53,337.77\n25625,10,gamma_wall_put,Gamma Wall (Put),1DTE,87 GEX,2782.53,337.77\n25700,9,hvl,HVL #1,1DTE,779 GEX @ 0.2% from spot,2782.53,337.77\n25800,8,call_wall,Call Wall #3,1DTE,474 GEX,2782.53,337.77\n26000,8,call_wall,Call Wall #4,1DTE,453 GEX,2782.53,337.77\n25450,8,put_wall,Put Wall #2,1DTE,38 GEX,2782.53,337.77\n25725,8,put_wall,Put Wall #3,1DTE,31 GEX,2782.53,337.77\n25540,8,put_wall,Put Wall #4,1DTE,28 GEX,2782.53,337.77\n25190,8,max_pain,Max Pain,1DTE,Expiration Target,2782.53,337.77\n25600,7,strike_call,Call Resist,1DTE,419 GEX,2782.53,337.77\n25500,7,strike_call,Call Resist,1DTE,386 GEX,2782.53,337.77\n25620,7,strike_call,Call Resist,1DTE,166 GEX,2782.53,337.77\n26100,7,strike_call,Call Resist,1DTE,152 GEX,2782.53,337.77\n25950,7,strike_call,Call Resist,1DTE,148 GEX,2782.53,337.77\n25900,7,strike_call,Call Resist,1DTE,112 GEX,2782.53,337.77\n"
+
+// ==================== SÉLECTION TICKER ====================
+string selected_ticker = input.string("ES", "Select Ticker", options=["ES", "NQ"], group="🎯 Ticker Selection")
+
+// ==================== AFFICHAGE TOGGLES ====================
+bool show_zero = input.bool(true, "Show ZERO Levels", group="👁️ Display Options")
+bool show_one = input.bool(true, "Show ONE Levels", group="👁️ Display Options")
+bool show_full = input.bool(false, "Show FULL Levels", group="👁️ Display Options")
+
+// ==================== FILTRES PAR IMPORTANCE ====================
+bool show_imp_10 = input.bool(true, "Importance 10 (Gamma Flip/Walls)", group="🎯 Importance Filters")
+bool show_imp_9 = input.bool(true, "Importance 9 (HVL, 0DTE Levels)", group="🎯 Importance Filters")
+bool show_imp_8 = input.bool(true, "Importance 8 (Secondary Walls, Max Pain)", group="🎯 Importance Filters")
+bool show_imp_7 = input.bool(false, "Importance 7 (Strikes, Vol Triggers)", group="🎯 Importance Filters")
+
+// ==================== FILTRES PAR TYPE ====================
+bool show_gamma_flip = input.bool(true, "Zero Gamma", group="📌 Level Types")
+bool show_gamma_walls = input.bool(true, "Gamma Walls", group="📌 Level Types")
+bool show_hvl = input.bool(true, "HVL (High Vol Levels)", group="📌 Level Types")
+bool show_0dte_levels = input.bool(true, "0DTE Specific Levels", group="📌 Level Types")
+bool show_max_pain = input.bool(true, "Max Pain", group="📌 Level Types")
+bool show_strikes = input.bool(false, "Top Strikes", group="📌 Level Types")
+bool show_vol_triggers = input.bool(false, "Vol Triggers", group="📌 Level Types")
+
+// ==================== STYLE ====================
+color color_gamma_flip = input.color(color.new(color.purple, 0), "Zero Gamma", group="🎨 Colors", inline="c1")
+color color_call_wall = input.color(color.new(color.red, 0), "Call Wall", group="🎨 Colors", inline="c2")
+color color_put_wall = input.color(color.new(color.green, 0), "Put Wall", group="🎨 Colors", inline="c2")
+color color_hvl = input.color(color.new(color.orange, 0), "HVL", group="🎨 Colors", inline="c3")
+color color_0dte = input.color(color.new(color.yellow, 0), "0DTE Levels", group="🎨 Colors", inline="c4")
+color color_max_pain = input.color(color.new(color.blue, 0), "Max Pain", group="🎨 Colors", inline="c5")
+color color_strikes = input.color(color.new(color.gray, 30), "Strikes", group="🎨 Colors", inline="c6")
+
+bool show_labels = input.bool(true, "Show Labels", group="🏷️ Labels")
+string label_size = input.string("Small", "Label Size", options=["Tiny", "Small", "Normal", "Large"], group="🏷️ Labels")
+bool use_distance_filter = input.bool(false, "Filter Labels Near Price", group="🏷️ Labels")
+float label_min_distance_pct = input.float(0.3, "Min Distance from Price (%)", minval=0, maxval=5, step=0.1, group="🏷️ Labels")
+
+// ==================== STOCKAGE ====================
+var array<line> all_lines = array.new<line>()
+var array<label> all_labels = array.new<label>()
+
+// ==================== FONCTIONS ====================
+get_label_size(string size) =>
+    size == "Tiny" ? size.tiny : size == "Small" ? size.small : size == "Normal" ? size.normal : size.large
+
+should_show_level(int importance, string level_type) =>
+    bool show_importance = (importance == 10 and show_imp_10) or (importance == 9 and show_imp_9) or (importance == 8 and show_imp_8) or (importance == 7 and show_imp_7)
+    bool show_type = (str.contains(level_type, "gamma_flip") and show_gamma_flip) or (str.contains(level_type, "gamma_wall") and show_gamma_walls) or (str.contains(level_type, "hvl") and show_hvl) or (str.contains(level_type, "0dte") and show_0dte_levels) or (str.contains(level_type, "max_pain") and show_max_pain) or (str.contains(level_type, "strike_") and show_strikes) or (str.contains(level_type, "vol_trigger") and show_vol_triggers) or str.contains(level_type, "call_wall") or str.contains(level_type, "put_wall")
+    show_importance and show_type
+
+get_level_color(string level_type) =>
+    str.contains(level_type, "gamma_flip") ? color_gamma_flip : str.contains(level_type, "gamma_wall_call") or str.contains(level_type, "call_wall") or str.contains(level_type, "call_res") ? color_call_wall : str.contains(level_type, "gamma_wall_put") or str.contains(level_type, "put_wall") or str.contains(level_type, "put_sup") ? color_put_wall : str.contains(level_type, "hvl") ? color_hvl : str.contains(level_type, "0dte") ? color_0dte : str.contains(level_type, "max_pain") ? color_max_pain : color_strikes
+
+clear_all_objects() =>
+    if array.size(all_lines) > 0
+        for i = 0 to array.size(all_lines) - 1
+            line.delete(array.get(all_lines, i))
+        array.clear(all_lines)
+    if array.size(all_labels) > 0
+        for i = 0 to array.size(all_labels) - 1
+            label.delete(array.get(all_labels, i))
+        array.clear(all_labels)
+
+process_csv(string csv_data, string dataset_name, bool should_show) =>
+    if should_show and bar_index == last_bar_index
+        lines_array = str.split(csv_data, "\n")
+        int total_lines = array.size(lines_array)
+        for i = 1 to total_lines - 1
+            if i < total_lines
+                string line_str = array.get(lines_array, i)
+                line_str := str.replace_all(line_str, "\r", "")
+                if str.length(line_str) > 10 and not str.contains(line_str, "strike,importance")
+                    fields = str.split(line_str, ",")
+                    int num_fields = array.size(fields)
+                    if num_fields >= 6
+                        string field0 = array.get(fields, 0)
+                        string field1 = array.get(fields, 1)
+                        if str.length(field0) > 0 and str.length(field1) > 0
+                            float strike_price = str.tonumber(field0)
+                            int importance = int(str.tonumber(field1))
+                            if not na(strike_price) and not na(importance) and importance >= 7 and importance <= 10
+                                string level_type = array.get(fields, 2)
+                                string label_text = array.get(fields, 3)
+                                string dte = num_fields > 4 ? array.get(fields, 4) : "N/A"
+                                string description = num_fields > 5 ? array.get(fields, 5) : ""
+                                if should_show_level(importance, level_type)
+                                    color level_color = get_level_color(level_type)
+                                    line new_line = line.new(x1=bar_index[500], y1=strike_price, x2=bar_index, y2=strike_price, color=level_color, width=1, style=line.style_solid, extend=extend.right)
+                                    array.push(all_lines, new_line)
+                                    if show_labels
+                                        bool show_this_label = true
+                                        if use_distance_filter
+                                            float price_distance = math.abs(close - strike_price)
+                                            float min_distance = close * (label_min_distance_pct / 100)
+                                            show_this_label := price_distance > min_distance
+                                        if show_this_label
+                                            string simple_label = label_text + " " + str.tostring(strike_price, "#.##")
+                                            label new_label = label.new(x=bar_index, y=strike_price, text=simple_label, color=color.new(color.white, 100), textcolor=level_color, style=label.style_none, size=get_label_size(label_size))
+                                            array.push(all_labels, new_label)
+
+// ==================== EXÉCUTION ====================
+if barstate.islast
+    clear_all_objects()
+    string csv_zero_active = selected_ticker == "ES" ? es_csv_zero : nq_csv_zero
+    string csv_one_active = selected_ticker == "ES" ? es_csv_one : nq_csv_one
+    string csv_full_active = selected_ticker == "ES" ? es_csv_full : nq_csv_full
+    process_csv(csv_zero_active, "ZERO", show_zero)
+    process_csv(csv_one_active, "ONE", show_one)
+    process_csv(csv_full_active, "FULL", show_full)
+
+plot(close, title="Price", display=display.none)
