@@ -395,6 +395,37 @@ th {
 }
 
 /* ===================================
+   UPDATE BANNER
+   =================================== */
+
+.update-banner {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: white;
+  padding: 14px 24px;
+  text-align: center;
+  font-size: 14px;
+  margin-bottom: 24px;
+  border-radius: var(--radius);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  animation: slideDown 0.3s ease-out;
+}
+
+.update-banner strong {
+  font-weight: 700;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===================================
    HERO COMPACT
    =================================== */
 
@@ -463,10 +494,218 @@ th {
   font-size: 14px;
   font-weight: 600;
   color: var(--text);
+  transition: all 0.2s;
+}
+
+.stat-inline:hover {
+  background: var(--glass-strong);
+  transform: translateY(-2px);
 }
 
 .stat-inline .stat-icon {
   font-size: 18px;
+}
+
+/* ===================================
+   GEX LEVELS SECTION
+   =================================== */
+
+.gex-levels-section {
+  padding: 64px 0;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.gex-levels-section h2 {
+  text-align: center;
+  margin: 0 0 12px;
+  font-size: 2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #60a5fa, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.section-subtitle {
+  text-align: center;
+  color: var(--muted);
+  margin: 0 0 48px;
+  font-size: 16px;
+}
+
+.gex-container {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.gex-instrument {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s;
+}
+
+.gex-instrument:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow);
+}
+
+.gex-instrument h3 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 24px;
+  font-size: 1.5rem;
+  color: var(--text);
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--border);
+}
+
+.instrument-icon {
+  font-size: 28px;
+}
+
+.gex-tabs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.gex-table-card {
+  background: var(--glass);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.gex-table-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.gex-table-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-sm);
+}
+
+.gex-table-card:hover::before {
+  opacity: 1;
+}
+
+.gex-table-card.blue {
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.gex-table-card.blue::before {
+  background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+}
+
+.gex-table-card.purple {
+  border-color: rgba(168, 85, 247, 0.3);
+}
+
+.gex-table-card.purple::before {
+  background: linear-gradient(90deg, transparent, #a855f7, transparent);
+}
+
+.gex-table-card.green {
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.gex-table-card.green::before {
+  background: linear-gradient(90deg, transparent, #10b981, transparent);
+}
+
+.gex-table-card h4 {
+  margin: 0 0 16px;
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--border);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.gex-table-card.blue h4 {
+  color: #60a5fa;
+}
+
+.gex-table-card.purple h4 {
+  color: #c084fc;
+}
+
+.gex-table-card.green h4 {
+  color: #34d399;
+}
+
+.gex-table-wrapper {
+  overflow-x: auto;
+  border-radius: 8px;
+}
+
+.gex-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.gex-table thead {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.gex-table th {
+  padding: 12px 14px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text);
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.gex-table td {
+  padding: 10px 14px;
+  color: var(--text);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px;
+}
+
+.gex-table tbody tr {
+  transition: background 0.2s;
+}
+
+.gex-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.gex-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.no-data {
+  text-align: center;
+  color: var(--muted);
+  padding: 32px 20px;
+  font-style: italic;
+  font-size: 14px;
 }
 
 /* ===================================
@@ -537,7 +776,7 @@ th {
    =================================== */
 
 .code-section-primary {
-  margin: 32px auto 48px;
+  margin: 48px auto;
   max-width: 1100px;
   width: 100%;
 }
@@ -567,60 +806,6 @@ th {
   font-size: 15px;
   margin: 0;
   line-height: 1.5;
-}
-
-.code-update {
-  color: var(--muted);
-  font-size: 14px;
-  margin-top: 8px;
-}
-
-/* Bannière très visible pour la date de mise à jour */
-.update-banner {
-  width: 100%;
-  background: linear-gradient(
-    90deg,
-    rgba(59, 130, 246, 0.12),
-    rgba(99, 102, 241, 0.08)
-  );
-  border: 1px solid rgba(59, 130, 246, 0.18);
-  color: #eaf2ff;
-  padding: 12px 20px;
-  margin: 12px 0 20px;
-  text-align: center;
-  font-weight: 700;
-  border-radius: 12px;
-  box-shadow: 0 8px 28px rgba(59, 130, 246, 0.06);
-  font-size: 16px;
-}
-
-/* Renforcer la visibilité dans le bloc code */
-.code-update {
-  color: var(--text);
-  background: rgba(59, 130, 246, 0.06);
-  padding: 8px 12px;
-  display: inline-block;
-  border-radius: 8px;
-  margin-top: 10px;
-  font-weight: 700;
-}
-
-/* Footer : mettre la date avant les liens et plus visible */
-.footer-update {
-  color: var(--muted);
-  font-size: 14px;
-  margin-right: 16px;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.02);
-}
-
-/* Coloration distincte pour l'heure de mise à jour */
-.update-banner strong,
-.code-update strong,
-.footer-update strong {
-  color: var(--accent);
 }
 
 .code-actions {
@@ -820,12 +1005,6 @@ th {
   color: var(--accent);
 }
 
-.footer-update {
-  color: var(--muted);
-  font-size: 13px;
-  margin-right: 12px;
-}
-
 /* ===================================
    ANIMATIONS
    =================================== */
@@ -869,6 +1048,18 @@ th {
 @media (max-width: 920px) {
   .app {
     padding: 20px 32px;
+  }
+
+  .gex-tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .gex-instrument {
+    padding: 24px;
+  }
+
+  .gex-levels-section {
+    padding: 48px 0;
   }
 
   .code-section-primary {
@@ -963,6 +1154,32 @@ th {
     justify-content: center;
   }
 
+  .gex-levels-section h2 {
+    font-size: 1.5rem;
+  }
+
+  .gex-instrument h3 {
+    font-size: 1.25rem;
+  }
+
+  .gex-instrument {
+    padding: 20px;
+  }
+
+  .gex-table-card {
+    padding: 16px;
+  }
+
+  .gex-table {
+    font-size: 12px;
+  }
+
+  .gex-table th,
+  .gex-table td {
+    padding: 8px 6px;
+    font-size: 12px;
+  }
+
   .code-container {
     padding: 20px;
   }
@@ -992,6 +1209,11 @@ th {
     font-size: 14px;
   }
 
+  .update-banner {
+    font-size: 13px;
+    padding: 10px 16px;
+  }
+
   .footer-content {
     flex-direction: column;
     align-items: flex-start;
@@ -1007,6 +1229,19 @@ th {
 @media (max-width: 480px) {
   :root {
     font-size: 14px;
+  }
+
+  .gex-table-card h4 {
+    font-size: 16px;
+  }
+
+  .gex-table th {
+    font-size: 11px;
+  }
+
+  .gex-table td {
+    font-size: 11px;
+    padding: 6px 4px;
   }
 }
 
@@ -1067,7 +1302,12 @@ th {
   .nav,
   .hero-cta,
   .code-actions,
+  .update-banner,
   button {
     display: none;
+  }
+
+  .gex-table {
+    border: 1px solid #000;
   }
 }

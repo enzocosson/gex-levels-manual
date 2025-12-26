@@ -11,6 +11,7 @@ import os
 from config import *
 
 
+
 # ==================== CONFIGURATION ====================
 TICKERS = {
     'SPX': {'target': 'ES', 'description': 'SPX GEX for ES Futures', 'multiplier': 1.00685},
@@ -18,12 +19,15 @@ TICKERS = {
 }
 
 
+
 DTE_PERIODS = {'zero': 'ZERO', 'one': 'ONE', 'full': 'FULL'}
+
 
 
 def log(message):
     timestamp = datetime.now().strftime('%H:%M:%S')
     print(f"[{timestamp}] {message}")
+
 
 
 def fetch_gex_data(ticker, aggregation):
@@ -43,6 +47,7 @@ def fetch_gex_data(ticker, aggregation):
         return None
 
 
+
 def fetch_gex_majors(ticker, aggregation):
     url = f"{BASE_URL}/{ticker}/classic/{aggregation}/majors?key={API_KEY}"
     try:
@@ -51,6 +56,7 @@ def fetch_gex_majors(ticker, aggregation):
         return response.json()
     except:
         return None
+
 
 
 def calculate_advanced_levels(strikes, spot):
@@ -97,94 +103,207 @@ def calculate_advanced_levels(strikes, spot):
     }
 
 
+
 def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_label):
     if not chain_data or not chain_data.get('strikes'):
-        return None
+        return None, None
     
     config = TICKERS[source_ticker]
     target = config['target']
-    spot = chain_data.get('spot', 0)
-    min_dte = chain_data.get('min_dte', 0)
-    zero_gamma = chain_data.get('zero_gamma', 0)
+    
+    # NOUVEAU NAMING - Renommage des propriétés API
+    spot_price = chain_data.get('spot', 0)
+    front_expiry_dte = chain_data.get('min_dte', 0)
+    next_expiry_dte = chain_data.get('sec_min_dte', 0)
+    volatility_trigger = chain_data.get('zero_gamma', 0)
+    data_timestamp = chain_data.get('timestamp', 0)
+    underlying_symbol = chain_data.get('ticker', source_ticker)
+    strike_gex_curve = chain_data.get('strikes', [])
+    net_gex_volume = chain_data.get('sum_gex_vol', 0)
+    net_gex_oi = chain_data.get('sum_gex_oi', 0)
+    vol_triggers_timeframe = chain_data.get('max_priors', [])
     
     major_data_source = majors_data if majors_data else chain_data
-    call_wall_vol = major_data_source.get('mneg_vol') or major_data_source.get('major_neg_vol', 0)
-    call_wall_oi = major_data_source.get('mneg_oi') or major_data_source.get('major_neg_oi', 0)
-    put_wall_vol = major_data_source.get('mpos_vol') or major_data_source.get('major_pos_vol', 0)
-    put_wall_oi = major_data_source.get('mpos_oi') or major_data_source.get('major_pos_oi', 0)
+    call_wall_volume = major_data_source.get('mpos_vol') or major_data_source.get('major_pos_vol', 0)
+    call_wall_oi = major_data_source.get('mpos_oi') or major_data_source.get('major_pos_oi', 0)
+    put_wall_volume = major_data_source.get('mneg_vol') or major_data_source.get('major_neg_vol', 0)
+    put_wall_oi = major_data_source.get('mneg_oi') or major_data_source.get('major_neg_oi', 0)
     
-    strikes = chain_data.get('strikes', [])
-    if not strikes:
-        return None
+    if not strike_gex_curve:
+        return None, None
     
-    is_zero_dte = (min_dte == 0)
-    dte_display = f"0DTE" if is_zero_dte else f"{min_dte}DTE"
+    is_zero_dte = (front_expiry_dte == 0)
+    dte_display = f"0DTE" if is_zero_dte else f"{front_expiry_dte}DTE"
     
-    log(f"   📊 {target}/{dte_label} - Spot: {spot}, {dte_display}")
-    advanced = calculate_advanced_levels(strikes, spot)
+    log(f"   📊 {target}/{dte_label} - Spot: {spot_price}, {dte_display}")
+    advanced = calculate_advanced_levels(strike_gex_curve, spot_price)
     log(f"      CallResAll: {advanced['call_res_all']:.0f} GEX")
     log(f"      PutSupAll: {advanced['put_sup_all']:.0f} GEX")
     
     levels = []
     
-    if zero_gamma and zero_gamma != 0:
-        regime = "Negative Gamma" if spot > zero_gamma else "Positive Gamma"
-        levels.append({'strike': round(zero_gamma, 2), 'importance': 10, 'type': 'gamma_flip', 'label': 'Zero Gamma', 'dte': dte_display, 'description': regime})
+    # Volatility Trigger (Zero Gamma)
+    if volatility_trigger and volatility_trigger != 0:
+        regime = "Negative Gamma" if spot_price > volatility_trigger else "Positive Gamma"
+        levels.append({
+            'strike': round(volatility_trigger, 2), 
+            'importance': 10, 
+            'type': 'volatility_trigger', 
+            'label': 'Volatility Trigger', 
+            'dte': dte_display, 
+            'description': f"Gamma flip point - {regime}"
+        })
     
+    # Major Call Wall
     if advanced['top_call_wall']:
         cw = advanced['top_call_wall']
-        levels.append({'strike': round(cw['strike'], 2), 'importance': 10, 'type': 'gamma_wall_call', 'label': 'Gamma Wall (Call)', 'dte': dte_display, 'description': f"{cw['abs_gex']:.0f} GEX"})
+        levels.append({
+            'strike': round(cw['strike'], 2), 
+            'importance': 10, 
+            'type': 'major_call_wall', 
+            'label': 'Major Call Wall', 
+            'dte': dte_display, 
+            'description': f"Primary resistance - {cw['abs_gex']:.0f} GEX"
+        })
     
+    # Major Put Wall
     if advanced['top_put_wall']:
         pw = advanced['top_put_wall']
-        levels.append({'strike': round(pw['strike'], 2), 'importance': 10, 'type': 'gamma_wall_put', 'label': 'Gamma Wall (Put)', 'dte': dte_display, 'description': f"{pw['abs_gex']:.0f} GEX"})
+        levels.append({
+            'strike': round(pw['strike'], 2), 
+            'importance': 10, 
+            'type': 'major_put_wall', 
+            'label': 'Major Put Wall', 
+            'dte': dte_display, 
+            'description': f"Primary support - {pw['abs_gex']:.0f} GEX"
+        })
     
+    # High Vol Levels
     for idx, hvl in enumerate(advanced['hvl_levels']):
-        levels.append({'strike': round(hvl['strike'], 2), 'importance': 9, 'type': 'hvl', 'label': f"HVL #{idx+1}", 'dte': dte_display, 'description': f"{hvl['abs_gex']:.0f} GEX @ {hvl['distance_pct']:.1f}% from spot"})
+        levels.append({
+            'strike': round(hvl['strike'], 2), 
+            'importance': 9, 
+            'type': 'high_vol_level', 
+            'label': f"High Vol Level #{idx+1}", 
+            'dte': dte_display, 
+            'description': f"HVL zone - {hvl['abs_gex']:.0f} GEX @ {hvl['distance_pct']:.1f}% from spot"
+        })
     
+    # 0DTE Specific Levels
     if is_zero_dte:
-        put_0dte = [p for p in advanced['all_put_walls'][:3] if p['strike'] < spot]
+        put_0dte = [p for p in advanced['all_put_walls'][:3] if p['strike'] < spot_price]
         for idx, ps in enumerate(put_0dte[:2]):
-            levels.append({'strike': round(ps['strike'], 2), 'importance': 9, 'type': 'put_sup_0dte', 'label': f"PutSup0DTE #{idx+1}", 'dte': dte_display, 'description': f"Support 0DTE: {ps['abs_gex']:.0f} GEX"})
+            levels.append({
+                'strike': round(ps['strike'], 2), 
+                'importance': 9, 
+                'type': 'put_wall_0dte', 
+                'label': f"Put Wall 0DTE #{idx+1}", 
+                'dte': dte_display, 
+                'description': f"0DTE put support - {ps['abs_gex']:.0f} GEX"
+            })
         
-        call_0dte = [c for c in advanced['all_call_walls'][:3] if c['strike'] > spot]
+        call_0dte = [c for c in advanced['all_call_walls'][:3] if c['strike'] > spot_price]
         for idx, cr in enumerate(call_0dte[:2]):
-            levels.append({'strike': round(cr['strike'], 2), 'importance': 9, 'type': 'call_res_0dte', 'label': f"CallRes0DTE #{idx+1}", 'dte': dte_display, 'description': f"Resistance 0DTE: {cr['abs_gex']:.0f} GEX"})
+            levels.append({
+                'strike': round(cr['strike'], 2), 
+                'importance': 9, 
+                'type': 'call_wall_0dte', 
+                'label': f"Call Wall 0DTE #{idx+1}", 
+                'dte': dte_display, 
+                'description': f"0DTE call resistance - {cr['abs_gex']:.0f} GEX"
+            })
     
-    if call_wall_vol and call_wall_vol != 0:
-        levels.append({'strike': round(call_wall_vol, 2), 'importance': 9, 'type': 'call_wall_api', 'label': 'Call Wall (Vol API)', 'dte': dte_display, 'description': 'Major from API'})
-    if put_wall_vol and put_wall_vol != 0:
-        levels.append({'strike': round(put_wall_vol, 2), 'importance': 9, 'type': 'put_wall_api', 'label': 'Put Wall (Vol API)', 'dte': dte_display, 'description': 'Major from API'})
+    # Call/Put Walls from API
+    if call_wall_volume and call_wall_volume != 0:
+        levels.append({
+            'strike': round(call_wall_volume, 2), 
+            'importance': 9, 
+            'type': 'call_wall_volume', 
+            'label': 'Call Wall (Volume)', 
+            'dte': dte_display, 
+            'description': 'Major call wall detected via volume'
+        })
+    if put_wall_volume and put_wall_volume != 0:
+        levels.append({
+            'strike': round(put_wall_volume, 2), 
+            'importance': 9, 
+            'type': 'put_wall_volume', 
+            'label': 'Put Wall (Volume)', 
+            'dte': dte_display, 
+            'description': 'Major put wall detected via volume'
+        })
     if call_wall_oi and call_wall_oi != 0:
-        levels.append({'strike': round(call_wall_oi, 2), 'importance': 8, 'type': 'call_wall_api', 'label': 'Call Wall (OI API)', 'dte': dte_display, 'description': 'Major from API'})
+        levels.append({
+            'strike': round(call_wall_oi, 2), 
+            'importance': 8, 
+            'type': 'call_wall_oi', 
+            'label': 'Call Wall (OI)', 
+            'dte': dte_display, 
+            'description': 'Major call wall detected via open interest'
+        })
     if put_wall_oi and put_wall_oi != 0:
-        levels.append({'strike': round(put_wall_oi, 2), 'importance': 8, 'type': 'put_wall_api', 'label': 'Put Wall (OI API)', 'dte': dte_display, 'description': 'Major from API'})
+        levels.append({
+            'strike': round(put_wall_oi, 2), 
+            'importance': 8, 
+            'type': 'put_wall_oi', 
+            'label': 'Put Wall (OI)', 
+            'dte': dte_display, 
+            'description': 'Major put wall detected via open interest'
+        })
     
+    # Secondary Walls
     for idx, cw in enumerate(advanced['all_call_walls'][1:4], 2):
-        levels.append({'strike': round(cw['strike'], 2), 'importance': 8, 'type': 'call_wall', 'label': f"Call Wall #{idx}", 'dte': dte_display, 'description': f"{cw['abs_gex']:.0f} GEX"})
+        levels.append({
+            'strike': round(cw['strike'], 2), 
+            'importance': 8, 
+            'type': 'call_resistance', 
+            'label': f"Call Resistance #{idx}", 
+            'dte': dte_display, 
+            'description': f"Secondary call wall - {cw['abs_gex']:.0f} GEX"
+        })
     for idx, pw in enumerate(advanced['all_put_walls'][1:4], 2):
-        levels.append({'strike': round(pw['strike'], 2), 'importance': 8, 'type': 'put_wall', 'label': f"Put Wall #{idx}", 'dte': dte_display, 'description': f"{pw['abs_gex']:.0f} GEX"})
+        levels.append({
+            'strike': round(pw['strike'], 2), 
+            'importance': 8, 
+            'type': 'put_support', 
+            'label': f"Put Support #{idx}", 
+            'dte': dte_display, 
+            'description': f"Secondary put wall - {pw['abs_gex']:.0f} GEX"
+        })
     
+    # Individual Strikes
     strikes_data = []
-    for strike_array in strikes:
+    for strike_array in strike_gex_curve:
         if isinstance(strike_array, list) and len(strike_array) >= 3:
-            strike_price = strike_array[0]
+            strike_price_val = strike_array[0]
             gex_vol = strike_array[1]
             gex_oi = strike_array[2]
             total_gex_sum = gex_vol + gex_oi
             total_gex = abs(total_gex_sum)
             if total_gex > 100:
-                strikes_data.append({'strike': round(strike_price, 2), 'total_gex': total_gex, 'is_call': (total_gex_sum > 0)})
+                strikes_data.append({
+                    'strike': round(strike_price_val, 2), 
+                    'total_gex': total_gex, 
+                    'is_call': (total_gex_sum > 0)
+                })
     
     strikes_data.sort(key=lambda x: x['total_gex'], reverse=True)
     for s in strikes_data[:15]:
-        strike_type = "Call Resist" if s['is_call'] else "Put Support"
-        levels.append({'strike': s['strike'], 'importance': 7, 'type': 'strike_' + ('call' if s['is_call'] else 'put'), 'label': strike_type, 'dte': dte_display, 'description': f"{s['total_gex']:.0f} GEX"})
+        strike_type = "Call Strike" if s['is_call'] else "Put Strike"
+        strike_desc = "Individual call resistance" if s['is_call'] else "Individual put support"
+        levels.append({
+            'strike': s['strike'], 
+            'importance': 7, 
+            'type': 'strike_call' if s['is_call'] else 'strike_put', 
+            'label': strike_type, 
+            'dte': dte_display, 
+            'description': f"{strike_desc} - {s['total_gex']:.0f} GEX"
+        })
     
-    max_priors = chain_data.get('max_priors', [])
-    if max_priors and isinstance(max_priors, list):
+    # Vol Triggers by Timeframe
+    if vol_triggers_timeframe and isinstance(vol_triggers_timeframe, list):
         intervals = ['1min', '5min', '10min', '15min', '30min', '1h']
-        for idx, strike_array in enumerate(max_priors[:6]):
+        for idx, strike_array in enumerate(vol_triggers_timeframe[:6]):
             if isinstance(strike_array, list) and len(strike_array) >= 2:
                 strike_val = strike_array[0]
                 gex_change = strike_array[1]
@@ -197,32 +316,61 @@ def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_la
                         importance, label = 8, f"Vol Trigger ({interval_name})"
                     else:
                         importance, label = 7, f"Vol Trigger ({interval_name})"
-                    levels.append({'strike': round(strike_val, 2), 'importance': importance, 'type': 'vol_trigger', 'label': label, 'dte': dte_display, 'description': f"Change: {gex_change:+.0f}"})
+                    levels.append({
+                        'strike': round(strike_val, 2), 
+                        'importance': importance, 
+                        'type': 'vol_trigger', 
+                        'label': label, 
+                        'dte': dte_display, 
+                        'description': f"Volatility trigger - GEX change: {gex_change:+.0f} over {interval_name}"
+                    })
     
+    # Max Pain Level
     min_gex = float('inf')
     max_pain = None
-    for strike_array in strikes:
+    for strike_array in strike_gex_curve:
         if isinstance(strike_array, list) and len(strike_array) >= 3:
-            strike_price = strike_array[0]
+            strike_price_val = strike_array[0]
             gex_vol = strike_array[1]
             gex_oi = strike_array[2]
             total_gex = abs(gex_vol + gex_oi)
             if total_gex < min_gex:
                 min_gex = total_gex
-                max_pain = strike_price
+                max_pain = strike_price_val
     
     if max_pain:
-        levels.append({'strike': round(max_pain, 2), 'importance': 8, 'type': 'max_pain', 'label': 'Max Pain', 'dte': dte_display, 'description': 'Expiration Target'})
+        levels.append({
+            'strike': round(max_pain, 2), 
+            'importance': 8, 
+            'type': 'max_pain_level', 
+            'label': 'Max Pain Level', 
+            'dte': dte_display, 
+            'description': 'Expiration target - minimum GEX strike'
+        })
     
     df = pd.DataFrame(levels)
+    
+    # Créer un dictionnaire de métadonnées
+    metadata = {
+        'data_timestamp': data_timestamp,
+        'underlying_symbol': underlying_symbol,
+        'spot_price': spot_price,
+        'front_expiry_dte': front_expiry_dte,
+        'next_expiry_dte': next_expiry_dte,
+        'volatility_trigger': volatility_trigger,
+        'net_gex_volume': net_gex_volume,
+        'net_gex_oi': net_gex_oi,
+        'call_res_all': advanced['call_res_all'],
+        'put_sup_all': advanced['put_sup_all']
+    }
+    
     if not df.empty:
         df = df.drop_duplicates(subset=['strike'], keep='first')
         df = df.sort_values('importance', ascending=False)
-        df['call_res_all'] = advanced['call_res_all']
-        df['put_sup_all'] = advanced['put_sup_all']
         log(f"      ✅ {len(df)} niveaux générés")
-        return df
-    return None
+        return df, metadata
+    return None, None
+
 
 
 def csv_to_pinescript_string(csv_content):
@@ -231,8 +379,25 @@ def csv_to_pinescript_string(csv_content):
     return escaped
 
 
-def generate_pinescript_indicator(csv_data_dict):
-    """Génère le fichier Pine Script avec multiplicateurs FIXES (non modifiables)"""
+
+def metadata_to_pinescript_string(metadata_dict):
+    """Convertit les métadonnées en string pour Pine Script"""
+    meta_str = f"Timestamp:{metadata_dict.get('data_timestamp', 0)}|"
+    meta_str += f"Symbol:{metadata_dict.get('underlying_symbol', '')}|"
+    meta_str += f"Spot:{metadata_dict.get('spot_price', 0):.2f}|"
+    meta_str += f"FrontDTE:{metadata_dict.get('front_expiry_dte', 0)}|"
+    meta_str += f"NextDTE:{metadata_dict.get('next_expiry_dte', 0)}|"
+    meta_str += f"VolTrigger:{metadata_dict.get('volatility_trigger', 0):.2f}|"
+    meta_str += f"NetGEXVol:{metadata_dict.get('net_gex_volume', 0):.2f}|"
+    meta_str += f"NetGEXOI:{metadata_dict.get('net_gex_oi', 0):.2f}|"
+    meta_str += f"CallResAll:{metadata_dict.get('call_res_all', 0):.2f}|"
+    meta_str += f"PutSupAll:{metadata_dict.get('put_sup_all', 0):.2f}"
+    return meta_str
+
+
+
+def generate_pinescript_indicator(csv_data_dict, metadata_dict):
+    """Génère le fichier Pine Script avec multiplicateurs FIXES et affichage des métadonnées"""
     
     es_zero_str = csv_data_dict.get('es_zero', '')
     es_one_str = csv_data_dict.get('es_one', '')
@@ -241,14 +406,18 @@ def generate_pinescript_indicator(csv_data_dict):
     nq_one_str = csv_data_dict.get('nq_one', '')
     nq_full_str = csv_data_dict.get('nq_full', '')
     
-    # Récupérer les multiplicateurs depuis TICKERS
+    es_zero_meta = metadata_dict.get('es_zero', '')
+    es_one_meta = metadata_dict.get('es_one', '')
+    es_full_meta = metadata_dict.get('es_full', '')
+    nq_zero_meta = metadata_dict.get('nq_zero', '')
+    nq_one_meta = metadata_dict.get('nq_one', '')
+    nq_full_meta = metadata_dict.get('nq_full', '')
+    
     spx_multiplier = TICKERS['SPX']['multiplier']
     ndx_multiplier = TICKERS['NDX']['multiplier']
     
-    # Template Pine Script avec multiplicateurs FIXES
-    part1 = f'''//@version=6
+    pine_script = f'''//@version=6
 indicator("GEX Professional Levels - Auto", overlay=true, max_lines_count=500, max_labels_count=500)
-
 
 // ==================== CSV DATA (AUTO-GENERATED) ====================
 string es_csv_zero = "{es_zero_str}"
@@ -257,9 +426,14 @@ string es_csv_full = "{es_full_str}"
 string nq_csv_zero = "{nq_zero_str}"
 string nq_csv_one = "{nq_one_str}"
 string nq_csv_full = "{nq_full_str}"
-'''
-    
-    part2 = f'''
+
+// ==================== METADATA ====================
+string es_meta_zero = "{es_zero_meta}"
+string es_meta_one = "{es_one_meta}"
+string es_meta_full = "{es_full_meta}"
+string nq_meta_zero = "{nq_zero_meta}"
+string nq_meta_one = "{nq_one_meta}"
+string nq_meta_full = "{nq_full_meta}"
 
 // ==================== AUTO-DETECTION TICKER ====================
 string detected_ticker = "ES"
@@ -268,8 +442,7 @@ if str.contains(syminfo.ticker, "NQ") or str.contains(syminfo.ticker, "NDX") or 
 else if str.contains(syminfo.ticker, "ES") or str.contains(syminfo.ticker, "SPX") or str.contains(syminfo.ticker, "SP500")
     detected_ticker := "ES"
 
-
-// ==================== MULTIPLICATEURS FIXES POUR CONVERSION ====================
+// ==================== MULTIPLICATEURS FIXES ====================
 float SPX_MULTIPLIER = {spx_multiplier}
 float NDX_MULTIPLIER = {ndx_multiplier}
 
@@ -285,63 +458,98 @@ else if detected_ticker == "NQ"
         conversion_multiplier := NDX_MULTIPLIER
         needs_conversion := true
 
-
 // ==================== PARAMÈTRES ====================
 string selected_dte = input.string("0DTE", "📅 DTE Period", options=["0DTE", "1DTE", "FULL"], group="🎯 Settings", tooltip="Days To Expiration")
 
-
 // ==================== FILTRES PAR IMPORTANCE ====================
-bool show_imp_10 = input.bool(true, "Importance 10 (Gamma Flip/Walls)", group="🎯 Importance Filters")
-bool show_imp_9 = input.bool(true, "Importance 9 (HVL, 0DTE Levels)", group="🎯 Importance Filters")
+bool show_imp_10 = input.bool(true, "Importance 10 (Major Walls/Volatility Trigger)", group="🎯 Importance Filters")
+bool show_imp_9 = input.bool(true, "Importance 9 (High Vol Levels, 0DTE Walls)", group="🎯 Importance Filters")
 bool show_imp_8 = input.bool(true, "Importance 8 (Secondary Walls, Max Pain)", group="🎯 Importance Filters")
-bool show_imp_7 = input.bool(false, "Importance 7 (Strikes, Vol Triggers)", group="🎯 Importance Filters")
-
+bool show_imp_7 = input.bool(false, "Importance 7 (Individual Strikes, Vol Triggers)", group="🎯 Importance Filters")
 
 // ==================== FILTRES PAR TYPE ====================
-bool show_gamma_flip = input.bool(true, "Zero Gamma", group="📌 Level Types")
-bool show_gamma_walls = input.bool(true, "Gamma Walls", group="📌 Level Types")
-bool show_hvl = input.bool(true, "HVL (High Vol Levels)", group="📌 Level Types")
-bool show_0dte_levels = input.bool(true, "0DTE Specific Levels", group="📌 Level Types")
-bool show_max_pain = input.bool(true, "Max Pain", group="📌 Level Types")
-bool show_strikes = input.bool(false, "Top Strikes", group="📌 Level Types")
-bool show_vol_triggers = input.bool(false, "Vol Triggers", group="📌 Level Types")
-
+bool show_volatility_trigger = input.bool(true, "Volatility Trigger", group="📌 Level Types", tooltip="Zero gamma flip point")
+bool show_major_walls = input.bool(true, "Major Call/Put Walls", group="📌 Level Types", tooltip="Primary resistance and support")
+bool show_high_vol_levels = input.bool(true, "High Vol Levels (HVL)", group="📌 Level Types", tooltip="High volatility zones near spot")
+bool show_0dte_walls = input.bool(true, "0DTE Call/Put Walls", group="📌 Level Types", tooltip="Same-day expiry walls")
+bool show_secondary_walls = input.bool(true, "Secondary Walls", group="📌 Level Types", tooltip="Call resistance and put support #2-4")
+bool show_max_pain = input.bool(true, "Max Pain Level", group="📌 Level Types", tooltip="Expiration target strike")
+bool show_individual_strikes = input.bool(false, "Individual Strikes", group="📌 Level Types", tooltip="Top 15 strikes by GEX")
+bool show_vol_triggers = input.bool(false, "Vol Triggers (Timeframe)", group="📌 Level Types", tooltip="GEX change triggers by interval")
 
 // ==================== STYLE ====================
-color color_gamma_flip = input.color(color.new(color.purple, 0), "Zero Gamma", group="🎨 Colors", inline="c1")
-color color_call_wall = input.color(color.new(color.red, 0), "Call Wall", group="🎨 Colors", inline="c2")
-color color_put_wall = input.color(color.new(color.green, 0), "Put Wall", group="🎨 Colors", inline="c2")
-color color_hvl = input.color(color.new(color.orange, 0), "HVL", group="🎨 Colors", inline="c3")
-color color_0dte = input.color(color.new(color.yellow, 0), "0DTE Levels", group="🎨 Colors", inline="c4")
-color color_max_pain = input.color(color.new(color.blue, 0), "Max Pain", group="🎨 Colors", inline="c5")
-color color_strikes = input.color(color.new(color.gray, 30), "Strikes", group="🎨 Colors", inline="c6")
+color color_volatility_trigger = input.color(color.new(color.purple, 0), "Volatility Trigger", group="🎨 Colors", inline="c1")
+color color_major_call_wall = input.color(color.new(color.red, 0), "Major Call Wall", group="🎨 Colors", inline="c2")
+color color_major_put_wall = input.color(color.new(color.green, 0), "Major Put Wall", group="🎨 Colors", inline="c3")
+color color_high_vol_level = input.color(color.new(color.orange, 0), "High Vol Level", group="🎨 Colors", inline="c4")
+color color_0dte_walls = input.color(color.new(color.yellow, 0), "0DTE Walls", group="🎨 Colors", inline="c5")
+color color_secondary_walls = input.color(color.new(color.gray, 30), "Secondary Walls", group="🎨 Colors", inline="c6")
+color color_max_pain = input.color(color.new(color.blue, 0), "Max Pain", group="🎨 Colors", inline="c7")
+color color_strikes = input.color(color.new(color.silver, 50), "Individual Strikes", group="🎨 Colors", inline="c8")
+color color_vol_trigger = input.color(color.new(color.fuchsia, 0), "Vol Triggers", group="🎨 Colors", inline="c9")
 
-
-bool show_labels = input.bool(true, "Show Labels", group="🏷️ Labels")
+// ==================== LABEL SETTINGS ====================
+bool show_labels = input.bool(true, "Show Labels", group="🏷️ Labels", tooltip="Display level labels on chart")
+bool show_descriptions = input.bool(false, "Show Descriptions", group="🏷️ Labels", tooltip="Add detailed descriptions to labels")
 string label_size = input.string("Small", "Label Size", options=["Tiny", "Small", "Normal", "Large"], group="🏷️ Labels")
-bool use_distance_filter = input.bool(false, "Filter Labels Near Price", group="🏷️ Labels")
+bool use_distance_filter = input.bool(false, "Filter Labels Near Price", group="🏷️ Labels", tooltip="Hide labels too close to current price")
 float label_min_distance_pct = input.float(0.3, "Min Distance from Price (%)", minval=0, maxval=5, step=0.1, group="🏷️ Labels")
 
+// ==================== METADATA DISPLAY ====================
+bool show_metadata = input.bool(true, "Show Market Info", group="📊 Metadata", tooltip="Display GEX metadata on chart")
+string metadata_position = input.string("Top Right", "Info Position", options=["Top Right", "Top Left", "Bottom Right", "Bottom Left"], group="📊 Metadata")
 
 // ==================== STOCKAGE ====================
 var array<line> all_lines = array.new<line>()
 var array<label> all_labels = array.new<label>()
-
+var label metadata_label = na
 
 // ==================== FONCTIONS ====================
 get_label_size(string size) =>
     size == "Tiny" ? size.tiny : size == "Small" ? size.small : size == "Normal" ? size.normal : size.large
 
-
 should_show_level(int importance, string level_type) =>
     bool show_importance = (importance == 10 and show_imp_10) or (importance == 9 and show_imp_9) or (importance == 8 and show_imp_8) or (importance == 7 and show_imp_7)
-    bool show_type = (str.contains(level_type, "gamma_flip") and show_gamma_flip) or (str.contains(level_type, "gamma_wall") and show_gamma_walls) or (str.contains(level_type, "hvl") and show_hvl) or (str.contains(level_type, "0dte") and show_0dte_levels) or (str.contains(level_type, "max_pain") and show_max_pain) or (str.contains(level_type, "strike_") and show_strikes) or (str.contains(level_type, "vol_trigger") and show_vol_triggers) or str.contains(level_type, "call_wall") or str.contains(level_type, "put_wall")
+    
+    bool show_type = false
+    if str.contains(level_type, "volatility_trigger")
+        show_type := show_volatility_trigger
+    else if str.contains(level_type, "major_call_wall") or str.contains(level_type, "major_put_wall")
+        show_type := show_major_walls
+    else if str.contains(level_type, "high_vol_level")
+        show_type := show_high_vol_levels
+    else if str.contains(level_type, "0dte")
+        show_type := show_0dte_walls
+    else if str.contains(level_type, "call_resistance") or str.contains(level_type, "put_support") or str.contains(level_type, "call_wall") or str.contains(level_type, "put_wall")
+        show_type := show_secondary_walls
+    else if str.contains(level_type, "max_pain")
+        show_type := show_max_pain
+    else if str.contains(level_type, "strike_")
+        show_type := show_individual_strikes
+    else if str.contains(level_type, "vol_trigger")
+        show_type := show_vol_triggers
+    
     show_importance and show_type
 
-
 get_level_color(string level_type) =>
-    str.contains(level_type, "gamma_flip") ? color_gamma_flip : str.contains(level_type, "gamma_wall_call") or str.contains(level_type, "call_wall") or str.contains(level_type, "call_res") ? color_call_wall : str.contains(level_type, "gamma_wall_put") or str.contains(level_type, "put_wall") or str.contains(level_type, "put_sup") ? color_put_wall : str.contains(level_type, "hvl") ? color_hvl : str.contains(level_type, "0dte") ? color_0dte : str.contains(level_type, "max_pain") ? color_max_pain : color_strikes
-
+    color result = color_strikes
+    if str.contains(level_type, "volatility_trigger")
+        result := color_volatility_trigger
+    else if str.contains(level_type, "major_call_wall")
+        result := color_major_call_wall
+    else if str.contains(level_type, "major_put_wall")
+        result := color_major_put_wall
+    else if str.contains(level_type, "high_vol_level")
+        result := color_high_vol_level
+    else if str.contains(level_type, "0dte")
+        result := color_0dte_walls
+    else if str.contains(level_type, "call_resistance") or str.contains(level_type, "put_support") or str.contains(level_type, "call_wall") or str.contains(level_type, "put_wall")
+        result := color_secondary_walls
+    else if str.contains(level_type, "max_pain")
+        result := color_max_pain
+    else if str.contains(level_type, "vol_trigger")
+        result := color_vol_trigger
+    result
 
 clear_all_objects() =>
     if array.size(all_lines) > 0
@@ -352,7 +560,21 @@ clear_all_objects() =>
         for i = 0 to array.size(all_labels) - 1
             label.delete(array.get(all_labels, i))
         array.clear(all_labels)
+    if not na(metadata_label)
+        label.delete(metadata_label)
+        metadata_label := na
 
+parse_metadata(string meta_str) =>
+    string result = ""
+    if str.length(meta_str) > 0
+        parts = str.split(meta_str, "|")
+        for part in parts
+            kv = str.split(part, ":")
+            if array.size(kv) == 2
+                key = array.get(kv, 0)
+                val = array.get(kv, 1)
+                result := result + key + ": " + val + "\\n"
+    result
 
 process_csv(string csv_data) =>
     if bar_index == last_bar_index
@@ -372,45 +594,63 @@ process_csv(string csv_data) =>
                             float strike_price_raw = str.tonumber(field0)
                             int importance = int(str.tonumber(field1))
                             if not na(strike_price_raw) and not na(importance) and importance >= 7 and importance <= 10
-                                // CONVERSION AVEC MULTIPLICATEUR FIXE
                                 float strike_price = needs_conversion ? strike_price_raw * conversion_multiplier : strike_price_raw
                                 
                                 string level_type = array.get(fields, 2)
                                 string label_text = array.get(fields, 3)
+                                string description = num_fields >= 6 ? array.get(fields, 5) : ""
+                                
                                 if should_show_level(importance, level_type)
                                     color level_color = get_level_color(level_type)
                                     line new_line = line.new(x1=bar_index[500], y1=strike_price, x2=bar_index, y2=strike_price, color=level_color, width=1, style=line.style_solid, extend=extend.right)
                                     array.push(all_lines, new_line)
+                                    
                                     if show_labels
                                         bool show_this_label = true
                                         if use_distance_filter
                                             float price_distance = math.abs(close - strike_price)
                                             float min_distance = close * (label_min_distance_pct / 100)
                                             show_this_label := price_distance > min_distance
+                                        
                                         if show_this_label
-                                            string simple_label = label_text + " " + str.tostring(strike_price, "#.##")
-                                            label new_label = label.new(x=bar_index, y=strike_price, text=simple_label, color=color.new(color.white, 100), textcolor=level_color, style=label.style_none, size=get_label_size(label_size))
+                                            string final_label = label_text + " " + str.tostring(strike_price, "#.##")
+                                            if show_descriptions and str.length(description) > 0
+                                                final_label := final_label + "\\n" + description
+                                            
+                                            label new_label = label.new(x=bar_index, y=strike_price, text=final_label, color=color.new(color.white, 100), textcolor=level_color, style=label.style_none, size=get_label_size(label_size))
                                             array.push(all_labels, new_label)
-
 
 // ==================== EXÉCUTION ====================
 if barstate.islast
     clear_all_objects()
     
     string csv_active = ""
+    string meta_active = ""
     
     if detected_ticker == "ES"
         csv_active := selected_dte == "0DTE" ? es_csv_zero : selected_dte == "1DTE" ? es_csv_one : es_csv_full
+        meta_active := selected_dte == "0DTE" ? es_meta_zero : selected_dte == "1DTE" ? es_meta_one : es_meta_full
     else
         csv_active := selected_dte == "0DTE" ? nq_csv_zero : selected_dte == "1DTE" ? nq_csv_one : nq_csv_full
+        meta_active := selected_dte == "0DTE" ? nq_meta_zero : selected_dte == "1DTE" ? nq_meta_one : nq_meta_full
     
     process_csv(csv_active)
-
+    
+    // Afficher les métadonnées
+    if show_metadata and str.length(meta_active) > 0
+        string meta_text = parse_metadata(meta_active)
+        string pos = metadata_position
+        string label_style = pos == "Top Right" ? label.style_label_lower_left : pos == "Top Left" ? label.style_label_lower_right : pos == "Bottom Right" ? label.style_label_upper_left : label.style_label_upper_right
+        int y_pos = pos == "Top Right" or pos == "Top Left" ? bar_index : bar_index
+        float price_pos = pos == "Top Right" or pos == "Top Left" ? high : low
+        
+        metadata_label := label.new(x=bar_index, y=price_pos, text=meta_text, color=color.new(color.gray, 90), textcolor=color.white, style=label_style, size=size.small)
 
 plot(close, title="Price", display=display.none)
 '''
     
-    return part1 + part2
+    return pine_script
+
 
 
 def main():
@@ -425,7 +665,6 @@ def main():
         log("❌ ERREUR: GEXBOT_API_KEY non définie")
         sys.exit(1)
     
-    # Afficher les multiplicateurs utilisés
     log("\n🔢 Multiplicateurs configurés:")
     log(f"   SPX -> ES: {TICKERS['SPX']['multiplier']}")
     log(f"   NDX -> NQ: {TICKERS['NDX']['multiplier']}")
@@ -434,6 +673,7 @@ def main():
     
     total_files = 0
     csv_data_dict = {}
+    metadata_dict = {}
     
     for source_ticker, config in TICKERS.items():
         target = config['target']
@@ -445,21 +685,22 @@ def main():
             majors_data = fetch_gex_majors(source_ticker, dte_api_name)
             
             if chain_data and chain_data.get('strikes'):
-                df_levels = generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_label)
+                df_levels, metadata = generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_label)
                 
-                if df_levels is not None and not df_levels.empty:
+                if df_levels is not None and not df_levels.empty and metadata:
                     output_file = f"{target.lower()}_gex_{dte_api_name}.csv"
                     df_levels.to_csv(output_file, index=False)
                     
                     csv_content = df_levels.to_csv(index=False)
                     csv_key = f"{target.lower()}_{dte_api_name}"
                     csv_data_dict[csv_key] = csv_to_pinescript_string(csv_content)
+                    metadata_dict[csv_key] = metadata_to_pinescript_string(metadata)
                     
                     log(f"      💾 {output_file} ({len(df_levels)} niveaux)")
                     total_files += 1
     
     if csv_data_dict:
-        pinescript_indicator = generate_pinescript_indicator(csv_data_dict)
+        pinescript_indicator = generate_pinescript_indicator(csv_data_dict, metadata_dict)
         indicator_file = 'indicator/gex-levels.pine'
         
         with open(indicator_file, 'w', encoding='utf-8') as f:
@@ -477,6 +718,7 @@ def main():
     log("=" * 70)
     
     sys.exit(0 if total_files > 0 else 1)
+
 
 
 if __name__ == '__main__':

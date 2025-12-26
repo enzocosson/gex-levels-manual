@@ -1,12 +1,55 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo } from "react";
 import "./App.css";
 import pineCode from "../../indicator/gex-levels.pine?raw";
 import lastUpdateRaw from "../../last_update.txt?raw";
+
+// Import CSV files as raw text
+import esGexZeroRaw from "../../es_gex_zero.csv?raw";
+import esGexOneRaw from "../../es_gex_one.csv?raw";
+import esGexFullRaw from "../../es_gex_full.csv?raw";
+import nqGexZeroRaw from "../../nq_gex_zero.csv?raw";
+import nqGexOneRaw from "../../nq_gex_one.csv?raw";
+import nqGexFullRaw from "../../nq_gex_full.csv?raw";
+
+// Parse CSV helper function
+const parseCSV = (csvText) => {
+  if (!csvText) return [];
+  const lines = csvText.trim().split("\n");
+  if (lines.length === 0) return [];
+
+  const headers = lines[0].split(",");
+
+  return lines.slice(1).map((line) => {
+    const values = line.split(",");
+    const obj = {};
+    headers.forEach((header, idx) => {
+      obj[header.trim()] = values[idx]?.trim() || "";
+    });
+    return obj;
+  });
+};
 
 function App() {
   const [copied, setCopied] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const featuresRef = useRef(null);
+
+  // Parse CSV data using useMemo (computed once, no side effects)
+  const gexData = useMemo(
+    () => ({
+      es: {
+        zero: parseCSV(esGexZeroRaw),
+        one: parseCSV(esGexOneRaw),
+        full: parseCSV(esGexFullRaw),
+      },
+      nq: {
+        zero: parseCSV(nqGexZeroRaw),
+        one: parseCSV(nqGexOneRaw),
+        full: parseCSV(nqGexFullRaw),
+      },
+    }),
+    []
+  ); // Empty deps = computed once on mount
 
   const copyToClipboard = async () => {
     try {
@@ -23,14 +66,12 @@ function App() {
     setMenuOpen(false);
   };
 
-  // parse last update date from file
-  let lastUpdate = "";
-  try {
-    const raw = (lastUpdateRaw || "").trim();
-    if (raw) {
-      // Try parsing as-is first, then try common variants (space->T, ' UTC'->Z),
-      // then fall back to a manual ISO construction for formats like
-      // "YYYY-MM-DD HH:MM:SS UTC". If all fail, show the raw string.
+  // Parse last update date using useMemo
+  const lastUpdate = useMemo(() => {
+    try {
+      const raw = (lastUpdateRaw || "").trim();
+      if (!raw) return "";
+
       let d = new Date(raw);
       if (isNaN(d.getTime())) {
         const isoVariant = raw.replace(" ", "T").replace(" UTC", "Z");
@@ -43,18 +84,18 @@ function App() {
         }
       }
       if (!isNaN(d.getTime())) {
-        lastUpdate = d.toLocaleString("fr-FR", {
+        return d.toLocaleString("fr-FR", {
           dateStyle: "long",
           timeStyle: "short",
           timeZone: "Europe/Paris",
         });
-      } else {
-        lastUpdate = raw;
       }
+      return raw;
+    } catch (e) {
+      console.error("Failed to parse last update", e);
+      return "";
     }
-  } catch (e) {
-    console.error("Failed to parse last update", e);
-  }
+  }, []);
 
   return (
     <div className="app modern">
@@ -76,6 +117,9 @@ function App() {
           <a href="#home" onClick={() => scrollToSection("home")}>
             Home
           </a>
+          <a href="#levels" onClick={() => scrollToSection("levels")}>
+            Niveaux GEX
+          </a>
           <a href="#features" onClick={() => scrollToSection("features")}>
             Features
           </a>
@@ -89,43 +133,43 @@ function App() {
         </div>
       </nav>
 
-      {/* BANNIERE DE MISE A JOUR (TRÈS VISIBLE) */}
+      {/* Update banner */}
       {lastUpdate && (
         <div className="update-banner" role="status" aria-live="polite">
-          Dernière mise à jour de l'indicateur : <strong>{lastUpdate}</strong>
+          Dernière mise à jour : <strong>{lastUpdate}</strong>
         </div>
       )}
 
       <main className="main">
-        {/* Hero compact en haut */}
+        {/* Hero compact */}
         <section className="hero-compact" id="home">
           <div className="hero-compact-inner">
             <div className="badge">TradingView Pine Script v5</div>
-            <h1>GEX Levels — SPX & NDX Futures</h1>
+            <h1>GEX Levels — ES & NQ Futures</h1>
             <p className="lead">
-              Indicateur d'exposition gamma (GEX) pour identifier les zones clés
-              de support/résistance sur les indices majeurs. Prêt à copier dans
-              TradingView.
+              Niveaux d'exposition gamma (GEX) en temps réel pour ES (SPX) et NQ
+              (NDX). Identifiez instantanément les zones clés de
+              support/résistance.
             </p>
 
             <div className="stats-inline">
               <div className="stat-inline">
                 <span className="stat-icon">📈</span>
-                <span>SPX</span>
+                <span>ES (SPX)</span>
               </div>
               <div className="stat-inline">
                 <span className="stat-icon">💹</span>
-                <span>NDX</span>
+                <span>NQ (NDX)</span>
               </div>
               <div className="stat-inline">
                 <span className="stat-icon">⚡</span>
-                <span>Real-time</span>
+                <span>Temps réel</span>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Section code — première position, centrée */}
+        {/* Code Section */}
         <section className="code-section-primary">
           <div className="code-container">
             <div className="code-header">
@@ -135,11 +179,6 @@ function App() {
                   Copiez ce code et collez-le dans l'éditeur Pine Script de
                   TradingView
                 </p>
-                {lastUpdate && (
-                  <p className="code-update">
-                    Dernière mise à jour : <strong>{lastUpdate}</strong>
-                  </p>
-                )}
               </div>
             </div>
 
@@ -215,7 +254,46 @@ function App() {
           </div>
         </section>
 
-        {/* Features en dessous */}
+        {/* GEX Levels Section */}
+        <section className="gex-levels-section" id="levels">
+          <h2>📊 Niveaux GEX Actuels</h2>
+          <p className="section-subtitle">
+            Consultez les niveaux d'exposition gamma calculés pour 0DTE, 1DTE et
+            Full
+          </p>
+
+          <div className="gex-container">
+            {/* ES (SPX) Levels */}
+            <div className="gex-instrument">
+              <h3>
+                <span className="instrument-icon">📈</span>
+                ES — S&P 500 Futures
+              </h3>
+
+              <div className="gex-tabs">
+                <GexTable title="0DTE" data={gexData.es.zero} color="blue" />
+                <GexTable title="1DTE" data={gexData.es.one} color="purple" />
+                <GexTable title="Full" data={gexData.es.full} color="green" />
+              </div>
+            </div>
+
+            {/* NQ (NDX) Levels */}
+            <div className="gex-instrument">
+              <h3>
+                <span className="instrument-icon">💹</span>
+                NQ — Nasdaq 100 Futures
+              </h3>
+
+              <div className="gex-tabs">
+                <GexTable title="0DTE" data={gexData.nq.zero} color="blue" />
+                <GexTable title="1DTE" data={gexData.nq.one} color="purple" />
+                <GexTable title="Full" data={gexData.nq.full} color="green" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Features */}
         <section className="features" id="features" ref={featuresRef}>
           <h2>Fonctionnalités</h2>
           <div className="features-grid">
@@ -224,22 +302,21 @@ function App() {
               <h4>Niveaux GEX précis</h4>
               <p className="muted">
                 Calcul des zones d'exposition gamma pour identifier les niveaux
-                clés de support/résistance
+                clés
               </p>
             </div>
             <div className="feature">
               <div className="feature-icon">🔄</div>
-              <h4>Multi-instruments</h4>
+              <h4>Multi-expirations</h4>
               <p className="muted">
-                Compatible SPX et NDX avec adaptation automatique des paramètres
+                0DTE, 1DTE et Full pour une vision complète du marché
               </p>
             </div>
             <div className="feature">
               <div className="feature-icon">⏱️</div>
-              <h4>Session tracking</h4>
+              <h4>Temps réel</h4>
               <p className="muted">
-                Suivi des ouvertures de marché et ajustement dynamique des
-                niveaux
+                Mise à jour automatique toutes les 5 minutes via GitHub Actions
               </p>
             </div>
             <div className="feature">
@@ -258,7 +335,7 @@ function App() {
             </div>
             <div className="feature">
               <div className="feature-icon">🚀</div>
-              <h4>Performance optimale</h4>
+              <h4>Performance</h4>
               <p className="muted">
                 Code optimisé Pine Script v5 pour une exécution rapide
               </p>
@@ -279,11 +356,6 @@ function App() {
               </div>
             </div>
             <div className="footer-links">
-              {lastUpdate && (
-                <div className="footer-update">
-                  Dernière mise à jour : <strong>{lastUpdate}</strong>
-                </div>
-              )}
               <a href="#privacy">Privacy</a>
               <a href="#license">License</a>
               <a href="#contact">Contact</a>
@@ -291,6 +363,44 @@ function App() {
           </div>
         </footer>
       </main>
+    </div>
+  );
+}
+
+// Component for displaying GEX table
+function GexTable({ title, data, color }) {
+  if (!data || data.length === 0) {
+    return (
+      <div className={`gex-table-card ${color}`}>
+        <h4>{title}</h4>
+        <p className="no-data">Aucune donnée disponible</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`gex-table-card ${color}`}>
+      <h4>{title}</h4>
+      <div className="gex-table-wrapper">
+        <table className="gex-table">
+          <thead>
+            <tr>
+              {Object.keys(data[0]).map((key) => (
+                <th key={key}>{key}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((row, idx) => (
+              <tr key={idx}>
+                {Object.values(row).map((val, i) => (
+                  <td key={i}>{val}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
