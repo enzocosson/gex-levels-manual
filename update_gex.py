@@ -1,7 +1,7 @@
 """
 Script de mise à jour GEX pour TradingView
 Génère les CSV ET l'indicateur Pine Script avec données hardcodées
-Auto-détection ES/NQ + Sélecteur DTE + Multiplicateur FIXE pour conversion
+Auto-détection ES/NQ + Sélecteur DTE + Multiplicateur AJUSTABLE
 """
 import requests
 import pandas as pd
@@ -231,8 +231,8 @@ def csv_to_pinescript_string(csv_content):
     return escaped
 
 
-def generate_pinescript_indicator(csv_data_dict, spx_multiplier, ndx_multiplier):
-    """Génère le fichier Pine Script avec multiplicateurs FIXES hardcodés"""
+def generate_pinescript_indicator(csv_data_dict):
+    """Génère le fichier Pine Script avec multiplicateurs AJUSTABLES en paramètres"""
     
     es_zero_str = csv_data_dict.get('es_zero', '')
     es_one_str = csv_data_dict.get('es_one', '')
@@ -241,7 +241,11 @@ def generate_pinescript_indicator(csv_data_dict, spx_multiplier, ndx_multiplier)
     nq_one_str = csv_data_dict.get('nq_one', '')
     nq_full_str = csv_data_dict.get('nq_full', '')
     
-    # Template Pine Script avec multiplicateurs FIXES
+    # Récupérer les multiplicateurs depuis TICKERS
+    spx_multiplier = TICKERS['SPX']['multiplier']
+    ndx_multiplier = TICKERS['NDX']['multiplier']
+    
+    # Template Pine Script avec multiplicateurs AJUSTABLES
     part1 = f'''//@version=6
 indicator("GEX Professional Levels - Auto", overlay=true, max_lines_count=500, max_labels_count=500)
 
@@ -265,25 +269,25 @@ else if str.contains(syminfo.ticker, "ES") or str.contains(syminfo.ticker, "SPX"
     detected_ticker := "ES"
 
 
-// ==================== MULTIPLICATEURS FIXES POUR CONVERSION ====================
-float SPX_MULTIPLIER = {spx_multiplier}
-float NDX_MULTIPLIER = {ndx_multiplier}
+// ==================== PARAMÈTRES ====================
+string selected_dte = input.string("0DTE", "📅 DTE Period", options=["0DTE", "1DTE", "FULL"], group="🎯 Settings", tooltip="Days To Expiration")
+
+
+// ==================== MULTIPLICATEURS AJUSTABLES ====================
+float spx_multiplier_input = input.float({spx_multiplier}, "SPX to ES Multiplier", minval=0.95, maxval=1.05, step=0.00001, group="🔢 Conversion", tooltip="Multiplicateur pour convertir niveaux SPX vers ES")
+float ndx_multiplier_input = input.float({ndx_multiplier}, "NDX to NQ Multiplier", minval=0.95, maxval=1.05, step=0.00001, group="🔢 Conversion", tooltip="Multiplicateur pour convertir niveaux NDX vers NQ")
 
 float conversion_multiplier = 1.0
 bool needs_conversion = false
 
 if detected_ticker == "ES"
     if str.contains(syminfo.ticker, "ES") and not str.contains(syminfo.ticker, "SPX")
-        conversion_multiplier := SPX_MULTIPLIER
+        conversion_multiplier := spx_multiplier_input
         needs_conversion := true
 else if detected_ticker == "NQ"
     if str.contains(syminfo.ticker, "NQ") and not str.contains(syminfo.ticker, "NDX")
-        conversion_multiplier := NDX_MULTIPLIER
+        conversion_multiplier := ndx_multiplier_input
         needs_conversion := true
-
-
-// ==================== PARAMÈTRES ====================
-string selected_dte = input.string("0DTE", "📅 DTE Period", options=["0DTE", "1DTE", "FULL"], group="🎯 Settings", tooltip="Days To Expiration")
 
 
 // ==================== FILTRES PAR IMPORTANCE ====================
@@ -368,7 +372,7 @@ process_csv(string csv_data) =>
                             float strike_price_raw = str.tonumber(field0)
                             int importance = int(str.tonumber(field1))
                             if not na(strike_price_raw) and not na(importance) and importance >= 7 and importance <= 10
-                                // CONVERSION AVEC MULTIPLICATEUR FIXE
+                                // CONVERSION AVEC MULTIPLICATEUR AJUSTABLE
                                 float strike_price = needs_conversion ? strike_price_raw * conversion_multiplier : strike_price_raw
                                 
                                 string level_type = array.get(fields, 2)
@@ -409,44 +413,6 @@ plot(close, title="Price", display=display.none)
     return part1 + part2
 
 
-def fetch_current_prices():
-    """Récupère les prix actuels SPX et NDX pour calculer les multiplicateurs"""
-    try:
-        # Utiliser l'API pour récupérer les prix spot
-        spx_data = fetch_gex_data('SPX', 'zero')
-        ndx_data = fetch_gex_data('NDX', 'zero')
-        
-        spx_spot = spx_data.get('spot', 0) if spx_data else 0
-        ndx_spot = ndx_data.get('spot', 0) if ndx_data else 0
-        
-        log(f"\n💱 Prix actuels:")
-        log(f"   SPX: {spx_spot}")
-        log(f"   NDX: {ndx_spot}")
-        
-        return spx_spot, ndx_spot
-    except Exception as e:
-        log(f"❌ Erreur récupération prix: {e}")
-        return 0, 0
-
-
-def calculate_multipliers(spx_spot, ndx_spot):
-    """Calcule les multiplicateurs ES/SPX et NQ/NDX"""
-    # Approximation du ratio futures/index (généralement très proche de 1.0)
-    # ES = SPX * multiplicateur
-    # NQ = NDX * multiplicateur
-    
-    # Pour une première approximation, on utilise 1.0
-    # Ces valeurs seront affinées automatiquement
-    spx_multiplier = 1.0
-    ndx_multiplier = 1.0
-    
-    log(f"\n🔢 Multiplicateurs calculés:")
-    log(f"   SPX -> ES: {spx_multiplier}")
-    log(f"   NDX -> NQ: {ndx_multiplier}")
-    
-    return spx_multiplier, ndx_multiplier
-
-
 def main():
     timestamp = datetime.now(timezone.utc)
     timestamp_str = timestamp.strftime('%Y-%m-%d %H:%M:%S UTC')
@@ -459,11 +425,12 @@ def main():
         log("❌ ERREUR: GEXBOT_API_KEY non définie")
         sys.exit(1)
     
-    os.makedirs('indicator', exist_ok=True)
+    # Afficher les multiplicateurs utilisés
+    log("\n🔢 Multiplicateurs configurés:")
+    log(f"   SPX -> ES: {TICKERS['SPX']['multiplier']}")
+    log(f"   NDX -> NQ: {TICKERS['NDX']['multiplier']}")
     
-    # Récupérer les prix actuels et calculer les multiplicateurs
-    spx_spot, ndx_spot = fetch_current_prices()
-    spx_multiplier, ndx_multiplier = calculate_multipliers(spx_spot, ndx_spot)
+    os.makedirs('indicator', exist_ok=True)
     
     total_files = 0
     csv_data_dict = {}
@@ -492,7 +459,7 @@ def main():
                     total_files += 1
     
     if csv_data_dict:
-        pinescript_indicator = generate_pinescript_indicator(csv_data_dict, spx_multiplier, ndx_multiplier)
+        pinescript_indicator = generate_pinescript_indicator(csv_data_dict)
         indicator_file = 'indicator/gex-levels.pine'
         
         with open(indicator_file, 'w', encoding='utf-8') as f:
