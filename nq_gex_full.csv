@@ -1,16 +1,16 @@
 strike,importance,type,label,dte,description,call_res_all,put_sup_all
-25625,10,gamma_wall_call,Gamma Wall (Call),1DTE,87 GEX,-54.58,2474.6699999999996
-25250,10,gamma_wall_put,Gamma Wall (Put),1DTE,959 GEX,-54.58,2474.6699999999996
-25700,9,hvl,HVL #1,1DTE,779 GEX @ 0.2% from spot,-54.58,2474.6699999999996
-25450,8,call_wall,Call Wall #2,1DTE,38 GEX,-54.58,2474.6699999999996
-25725,8,call_wall,Call Wall #3,1DTE,31 GEX,-54.58,2474.6699999999996
-25540,8,call_wall,Call Wall #4,1DTE,28 GEX,-54.58,2474.6699999999996
-25800,8,put_wall,Put Wall #3,1DTE,474 GEX,-54.58,2474.6699999999996
-26000,8,put_wall,Put Wall #4,1DTE,453 GEX,-54.58,2474.6699999999996
-25190,8,max_pain,Max Pain,1DTE,Expiration Target,-54.58,2474.6699999999996
-25600,7,strike_put,Put Support,1DTE,419 GEX,-54.58,2474.6699999999996
-25500,7,strike_put,Put Support,1DTE,386 GEX,-54.58,2474.6699999999996
-25620,7,strike_put,Put Support,1DTE,166 GEX,-54.58,2474.6699999999996
-26100,7,strike_put,Put Support,1DTE,152 GEX,-54.58,2474.6699999999996
-25950,7,strike_put,Put Support,1DTE,148 GEX,-54.58,2474.6699999999996
-25900,7,strike_put,Put Support,1DTE,112 GEX,-54.58,2474.6699999999996
+25250,10,gamma_wall_call,Gamma Wall (Call),1DTE,959 GEX,2782.53,337.77
+25625,10,gamma_wall_put,Gamma Wall (Put),1DTE,87 GEX,2782.53,337.77
+25700,9,hvl,HVL #1,1DTE,779 GEX @ 0.2% from spot,2782.53,337.77
+25800,8,call_wall,Call Wall #3,1DTE,474 GEX,2782.53,337.77
+26000,8,call_wall,Call Wall #4,1DTE,453 GEX,2782.53,337.77
+25450,8,put_wall,Put Wall #2,1DTE,38 GEX,2782.53,337.77
+25725,8,put_wall,Put Wall #3,1DTE,31 GEX,2782.53,337.77
+25540,8,put_wall,Put Wall #4,1DTE,28 GEX,2782.53,337.77
+25190,8,max_pain,Max Pain,1DTE,Expiration Target,2782.53,337.77
+25600,7,strike_call,Call Resist,1DTE,419 GEX,2782.53,337.77
+25500,7,strike_call,Call Resist,1DTE,386 GEX,2782.53,337.77
+25620,7,strike_call,Call Resist,1DTE,166 GEX,2782.53,337.77
+26100,7,strike_call,Call Resist,1DTE,152 GEX,2782.53,337.77
+25950,7,strike_call,Call Resist,1DTE,148 GEX,2782.53,337.77
+25900,7,strike_call,Call Resist,1DTE,112 GEX,2782.53,337.77

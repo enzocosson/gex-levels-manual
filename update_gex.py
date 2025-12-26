@@ -1,12 +1,14 @@
 """
 Script de mise à jour GEX pour TradingView
 Génère 3 CSV: ZERO, ONE, FULL
+✅ VERSION CORRIGÉE - Convention GEX standard appliquée
 """
 import requests
 import pandas as pd
 from datetime import datetime, timezone
 import sys
 from config import *
+
 
 
 # ==================== CONFIGURATION TICKERS ====================
@@ -21,6 +23,7 @@ TICKERS = {
     }
 }
 
+
 # Périodes DTE disponibles
 DTE_PERIODS = {
     'zero': 'ZERO',   # 0DTE ou plus proche expiration
@@ -29,10 +32,12 @@ DTE_PERIODS = {
 }
 
 
+
 def log(message):
     """Logger simple"""
     timestamp = datetime.now().strftime('%H:%M:%S')
     print(f"[{timestamp}] {message}")
+
 
 
 def fetch_gex_data(ticker, aggregation):
@@ -55,6 +60,7 @@ def fetch_gex_data(ticker, aggregation):
         return None
 
 
+
 def fetch_gex_majors(ticker, aggregation):
     """Récupère les niveaux majeurs"""
     url = f"{BASE_URL}/{ticker}/classic/{aggregation}/majors?key={API_KEY}"
@@ -67,8 +73,15 @@ def fetch_gex_majors(ticker, aggregation):
         return None
 
 
+
 def calculate_advanced_levels(strikes, spot):
-    """Calcule les niveaux avancés"""
+    """
+    Calcule les niveaux avancés
+    
+    ✅ CONVENTION GEX CORRIGÉE:
+    - GEX POSITIF (+) = CALLS → Résistance
+    - GEX NÉGATIF (-) = PUTS → Support
+    """
     
     call_resistance_total = 0
     put_support_total = 0
@@ -86,20 +99,24 @@ def calculate_advanced_levels(strikes, spot):
             total_gex = gex_vol + gex_oi
             abs_total_gex = abs(total_gex)
             
-            # CallResAll / PutSupAll
-            if strike_price > spot and total_gex < 0:
+            # ✅ CORRIGÉ: CallResAll / PutSupAll
+            # GEX positif au dessus du spot = résistance call
+            # GEX négatif en dessous du spot = support put
+            if strike_price > spot and total_gex > 0:
                 call_resistance_total += total_gex
-            elif strike_price < spot and total_gex > 0:
-                put_support_total += total_gex
+            elif strike_price < spot and total_gex < 0:
+                put_support_total += abs(total_gex)
             
-            # Gamma Walls
-            if total_gex < 0:
+            # ✅ CORRIGÉ: Gamma Walls
+            # GEX positif = Call walls
+            # GEX négatif = Put walls
+            if total_gex > 0:
                 call_walls.append({
                     'strike': strike_price,
                     'gex': total_gex,
                     'abs_gex': abs_total_gex
                 })
-            elif total_gex > 0:
+            elif total_gex < 0:
                 put_walls.append({
                     'strike': strike_price,
                     'gex': total_gex,
@@ -130,6 +147,7 @@ def calculate_advanced_levels(strikes, spot):
         'all_put_walls': put_walls[:5],
         'hvl_levels': hvl_candidates[:3]
     }
+
 
 
 def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_label):
@@ -224,7 +242,7 @@ def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_la
     
     # ==================== NIVEAUX 0DTE SPÉCIAUX ====================
     if is_zero_dte:
-        # PutSup0DTE (en dessous du spot)
+        # ✅ CORRIGÉ: PutSup0DTE (put walls en dessous du spot)
         put_0dte = [p for p in advanced['all_put_walls'][:3] if p['strike'] < spot]
         for idx, ps in enumerate(put_0dte[:2]):
             levels.append({
@@ -236,7 +254,7 @@ def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_la
                 'description': f"Support 0DTE: {ps['abs_gex']:.0f} GEX"
             })
         
-        # CallRes0DTE (au dessus du spot)
+        # ✅ CORRIGÉ: CallRes0DTE (call walls au dessus du spot)
         call_0dte = [c for c in advanced['all_call_walls'][:3] if c['strike'] > spot]
         for idx, cr in enumerate(call_0dte[:2]):
             levels.append({
@@ -319,13 +337,14 @@ def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_la
             gex_vol = strike_array[1]
             gex_oi = strike_array[2]
             
-            total_gex = abs(gex_vol) + abs(gex_oi)
+            total_gex_sum = gex_vol + gex_oi
+            total_gex = abs(total_gex_sum)
             
             if total_gex > 100:  # Seuil minimum
                 strikes_data.append({
                     'strike': round(strike_price, 2),
                     'total_gex': total_gex,
-                    'is_call': (gex_vol < 0 or gex_oi < 0)
+                    'is_call': (total_gex_sum > 0)  # ✅ CORRIGÉ: GEX positif = Call
                 })
     
     strikes_data.sort(key=lambda x: x['total_gex'], reverse=True)
@@ -417,6 +436,7 @@ def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_la
     return None
 
 
+
 def main():
     timestamp = datetime.now(timezone.utc)
     timestamp_str = timestamp.strftime('%Y-%m-%d %H:%M:%S UTC')
@@ -461,12 +481,11 @@ def main():
                 log(f"      ⚠️  Pas de données disponibles")
     
     # Mettre à jour `last_update.txt` uniquement si des fichiers ont été générés
-    # (considéré comme une exécution réussie). On évite d'écraser la date en cas
-    # d'erreur ou si aucun niveau n'a été produit.
     if total_files > 0:
         with open('last_update.txt', 'w') as f:
             f.write(timestamp_str)
-            f.flush()  # Force l'écriture immédiate
+            f.flush()
+
 
     log("\n" + "=" * 70)
     log(f"✅ COMPLETED - {total_files} fichiers générés")
@@ -491,6 +510,7 @@ def main():
     log("=" * 70)
     
     sys.exit(0 if total_files > 0 else 1)
+
 
 
 if __name__ == '__main__':
