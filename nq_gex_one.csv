@@ -1,10 +1,12 @@
 strike,importance,type,label,dte,description,call_res_all,put_sup_all
-25700,10,gamma_wall_call,Gamma Wall (Call),0DTE ⚡,108 GEX,353.4800000000001,95.14
-25560,10,gamma_wall_put,Gamma Wall (Put),0DTE ⚡,17 GEX,353.4800000000001,95.14
-25480,9,put_sup_0dte,PutSup0DTE #2,0DTE ⚡,Support 0DTE: 14 GEX,353.4800000000001,95.14
-25800,9,call_res_0dte,CallRes0DTE #2,0DTE ⚡,Resistance 0DTE: 37 GEX,353.4800000000001,95.14
-25660,8,call_wall,Call Wall #3,0DTE ⚡,37 GEX,353.4800000000001,95.14
-25750,8,call_wall,Call Wall #4,0DTE ⚡,31 GEX,353.4800000000001,95.14
-25450,8,put_wall,Put Wall #3,0DTE ⚡,12 GEX,353.4800000000001,95.14
-25550,8,put_wall,Put Wall #4,0DTE ⚡,8 GEX,353.4800000000001,95.14
-25160,8,max_pain,Max Pain,0DTE ⚡,Expiration Target,353.4800000000001,95.14
+25620,10,gamma_flip,Zero Gamma,0DTE,Negative Gamma,251.52999999999994,102.71
+25700,10,gamma_wall_call,Gamma Wall (Call),0DTE,115 GEX,251.52999999999994,102.71
+25560,10,gamma_wall_put,Gamma Wall (Put),0DTE,17 GEX,251.52999999999994,102.71
+25480,9,put_sup_0dte,PutSup0DTE #2,0DTE,Support 0DTE: 14 GEX,251.52999999999994,102.71
+25770,9,call_res_0dte,CallRes0DTE #1,0DTE,Resistance 0DTE: 47 GEX,251.52999999999994,102.71
+25750,9,call_res_0dte,CallRes0DTE #2,0DTE,Resistance 0DTE: 40 GEX,251.52999999999994,102.71
+25610,9,call_wall_api,Call Wall (Vol API),0DTE,Major from API,251.52999999999994,102.71
+25800,8,call_wall,Call Wall #4,0DTE,37 GEX,251.52999999999994,102.71
+25450,8,put_wall,Put Wall #3,0DTE,12 GEX,251.52999999999994,102.71
+25550,8,put_wall,Put Wall #4,0DTE,8 GEX,251.52999999999994,102.71
+25210,8,max_pain,Max Pain,0DTE,Expiration Target,251.52999999999994,102.71
