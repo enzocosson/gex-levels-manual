@@ -40,6 +40,8 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore: Update GEX data [auto]"
-          file_pattern: "*.csv *.txt *.pine"
+          # Commit only CSVs and the last_update file. Avoid failing when
+          # optional patterns (e.g. *.pine) have no matches in the repo.
+          file_pattern: "*.csv last_update.txt"
           # pass the token explicitly (uses the built-in GITHUB_TOKEN)
           github_token: ${{ secrets.GITHUB_TOKEN }}
