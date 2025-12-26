@@ -1,7 +1,7 @@
 """
 Script de mise à jour GEX pour TradingView
 Génère les CSV ET l'indicateur Pine Script avec données hardcodées
-Auto-détection ES/NQ + Sélecteur DTE + Multiplicateur AJUSTABLE
+Auto-détection ES/NQ + Sélecteur DTE + Multiplicateurs FIXES
 """
 import requests
 import pandas as pd
@@ -232,7 +232,7 @@ def csv_to_pinescript_string(csv_content):
 
 
 def generate_pinescript_indicator(csv_data_dict):
-    """Génère le fichier Pine Script avec multiplicateurs AJUSTABLES en paramètres"""
+    """Génère le fichier Pine Script avec multiplicateurs FIXES (non modifiables)"""
     
     es_zero_str = csv_data_dict.get('es_zero', '')
     es_one_str = csv_data_dict.get('es_one', '')
@@ -245,7 +245,7 @@ def generate_pinescript_indicator(csv_data_dict):
     spx_multiplier = TICKERS['SPX']['multiplier']
     ndx_multiplier = TICKERS['NDX']['multiplier']
     
-    # Template Pine Script avec multiplicateurs AJUSTABLES
+    # Template Pine Script avec multiplicateurs FIXES
     part1 = f'''//@version=6
 indicator("GEX Professional Levels - Auto", overlay=true, max_lines_count=500, max_labels_count=500)
 
@@ -267,6 +267,23 @@ if str.contains(syminfo.ticker, "NQ") or str.contains(syminfo.ticker, "NDX") or 
     detected_ticker := "NQ"
 else if str.contains(syminfo.ticker, "ES") or str.contains(syminfo.ticker, "SPX") or str.contains(syminfo.ticker, "SP500")
     detected_ticker := "ES"
+
+
+// ==================== MULTIPLICATEURS FIXES POUR CONVERSION ====================
+float SPX_MULTIPLIER = {spx_multiplier}
+float NDX_MULTIPLIER = {ndx_multiplier}
+
+float conversion_multiplier = 1.0
+bool needs_conversion = false
+
+if detected_ticker == "ES"
+    if str.contains(syminfo.ticker, "ES") and not str.contains(syminfo.ticker, "SPX")
+        conversion_multiplier := SPX_MULTIPLIER
+        needs_conversion := true
+else if detected_ticker == "NQ"
+    if str.contains(syminfo.ticker, "NQ") and not str.contains(syminfo.ticker, "NDX")
+        conversion_multiplier := NDX_MULTIPLIER
+        needs_conversion := true
 
 
 // ==================== PARAMÈTRES ====================
@@ -355,7 +372,7 @@ process_csv(string csv_data) =>
                             float strike_price_raw = str.tonumber(field0)
                             int importance = int(str.tonumber(field1))
                             if not na(strike_price_raw) and not na(importance) and importance >= 7 and importance <= 10
-                                // CONVERSION AVEC MULTIPLICATEUR AJUSTABLE
+                                // CONVERSION AVEC MULTIPLICATEUR FIXE
                                 float strike_price = needs_conversion ? strike_price_raw * conversion_multiplier : strike_price_raw
                                 
                                 string level_type = array.get(fields, 2)
