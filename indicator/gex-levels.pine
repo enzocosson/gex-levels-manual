@@ -23,23 +23,6 @@ else if str.contains(syminfo.ticker, "ES") or str.contains(syminfo.ticker, "SPX"
 string selected_dte = input.string("0DTE", "📅 DTE Period", options=["0DTE", "1DTE", "FULL"], group="🎯 Settings", tooltip="Days To Expiration")
 
 
-// ==================== MULTIPLICATEURS AJUSTABLES ====================
-float spx_multiplier_input = input.float(1.00685, "SPX to ES Multiplier", minval=0.95, maxval=1.05, step=0.00001, group="🔢 Conversion", tooltip="Multiplicateur pour convertir niveaux SPX vers ES")
-float ndx_multiplier_input = input.float(1.0083, "NDX to NQ Multiplier", minval=0.95, maxval=1.05, step=0.00001, group="🔢 Conversion", tooltip="Multiplicateur pour convertir niveaux NDX vers NQ")
-
-float conversion_multiplier = 1.0
-bool needs_conversion = false
-
-if detected_ticker == "ES"
-    if str.contains(syminfo.ticker, "ES") and not str.contains(syminfo.ticker, "SPX")
-        conversion_multiplier := spx_multiplier_input
-        needs_conversion := true
-else if detected_ticker == "NQ"
-    if str.contains(syminfo.ticker, "NQ") and not str.contains(syminfo.ticker, "NDX")
-        conversion_multiplier := ndx_multiplier_input
-        needs_conversion := true
-
-
 // ==================== FILTRES PAR IMPORTANCE ====================
 bool show_imp_10 = input.bool(true, "Importance 10 (Gamma Flip/Walls)", group="🎯 Importance Filters")
 bool show_imp_9 = input.bool(true, "Importance 9 (HVL, 0DTE Levels)", group="🎯 Importance Filters")
