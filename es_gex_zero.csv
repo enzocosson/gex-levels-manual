@@ -1,18 +1,18 @@
 strike,importance,type,label,dte,description,call_res_all,put_sup_all
-6929.17,10,gamma_flip,Zero Gamma,0DTE,Negative Gamma,357586.15,321953.82
-6925.0,10,gamma_wall_put,Gamma Wall (Put),0DTE,148622 GEX,357586.15,321953.82
-6935.0,10,gamma_wall_call,Gamma Wall (Call),0DTE,148078 GEX,357586.15,321953.82
-6940.0,9,hvl,HVL #3,0DTE,116341 GEX @ 0.1% from spot,357586.15,321953.82
-6920.0,9,put_sup_0dte,PutSup0DTE #2,0DTE,Support 0DTE: 91634 GEX,357586.15,321953.82
-6950.0,8,call_wall,Call Wall #4,0DTE,30250 GEX,357586.15,321953.82
-6910.0,8,put_wall,Put Wall #4,0DTE,21808 GEX,357586.15,321953.82
-6945.0,8,call_wall,Call Wall #3,0DTE,42424 GEX,357586.15,321953.82
-6915.0,8,call_wall_api,Call Wall (OI API),0DTE,Major from API,357586.15,321953.82
-7105.0,8,max_pain,Max Pain,0DTE,Expiration Target,357586.15,321953.82
-6930.0,7,strike_call,Call Resist,0DTE,23369 GEX,357586.15,321953.82
-6955.0,7,strike_call,Call Resist,0DTE,9300 GEX,357586.15,321953.82
-6905.0,7,strike_put,Put Support,0DTE,7036 GEX,357586.15,321953.82
-6900.0,7,strike_put,Put Support,0DTE,5603 GEX,357586.15,321953.82
-6960.0,7,strike_call,Call Resist,0DTE,4851 GEX,357586.15,321953.82
-6895.0,7,strike_put,Put Support,0DTE,3118 GEX,357586.15,321953.82
-6965.0,7,strike_call,Call Resist,0DTE,1958 GEX,357586.15,321953.82
+6928.8,10,gamma_flip,Zero Gamma,0DTE,Negative Gamma,358871.36,301276.51
+6935.0,10,gamma_wall_call,Gamma Wall (Call),0DTE,165686 GEX,358871.36,301276.51
+6925.0,10,gamma_wall_put,Gamma Wall (Put),0DTE,141349 GEX,358871.36,301276.51
+6940.0,9,hvl,HVL #3,0DTE,103153 GEX @ 0.1% from spot,358871.36,301276.51
+6920.0,9,put_sup_0dte,PutSup0DTE #2,0DTE,Support 0DTE: 87185 GEX,358871.36,301276.51
+6915.0,8,call_wall_api,Call Wall (OI API),0DTE,Major from API,358871.36,301276.51
+6930.0,8,call_wall,Call Wall #3,0DTE,45405 GEX,358871.36,301276.51
+6945.0,8,call_wall,Call Wall #4,0DTE,38121 GEX,358871.36,301276.51
+6910.0,8,put_wall,Put Wall #4,0DTE,19544 GEX,358871.36,301276.51
+7105.0,8,max_pain,Max Pain,0DTE,Expiration Target,358871.36,301276.51
+6950.0,7,strike_call,Call Resist,0DTE,31007 GEX,358871.36,301276.51
+6905.0,7,strike_put,Put Support,0DTE,6693 GEX,358871.36,301276.51
+6955.0,7,strike_call,Call Resist,0DTE,9655 GEX,358871.36,301276.51
+6960.0,7,strike_call,Call Resist,0DTE,5103 GEX,358871.36,301276.51
+6900.0,7,strike_put,Put Support,0DTE,5024 GEX,358871.36,301276.51
+6895.0,7,strike_put,Put Support,0DTE,2718 GEX,358871.36,301276.51
+6965.0,7,strike_call,Call Resist,0DTE,2021 GEX,358871.36,301276.51
