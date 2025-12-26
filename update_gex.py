@@ -232,7 +232,7 @@ def csv_to_pinescript_string(csv_content):
 
 
 def generate_pinescript_indicator(csv_data_dict):
-    """Génère le fichier Pine Script avec auto-détection ticker + conversion dynamique FIXE"""
+    """Génère le fichier Pine Script avec auto-détection ticker + conversion dynamique"""
     
     es_zero_str = csv_data_dict.get('es_zero', '')
     es_one_str = csv_data_dict.get('es_one', '')
@@ -243,7 +243,7 @@ def generate_pinescript_indicator(csv_data_dict):
     
     # Template Pine Script en plusieurs parties
     part1 = f'''//@version=6
-indicator("[Zeno] GEX Professional Levels", overlay=true, max_lines_count=500, max_labels_count=500)
+indicator("GEX Professional Levels - Auto", overlay=true, max_lines_count=500, max_labels_count=500)
 
 
 // ==================== CSV DATA (AUTO-GENERATED) ====================
@@ -265,28 +265,21 @@ else if str.contains(syminfo.ticker, "ES") or str.contains(syminfo.ticker, "SPX"
     detected_ticker := "ES"
 
 
-// ==================== CONVERSION DYNAMIQUE INDEX VERS FUTURES (FIXE) ====================
-var float spx_price = na
-var float ndx_price = na
-var float conversion_multiplier = 1.0
-var bool needs_conversion = false
-var bool conversion_initialized = false
+// ==================== CONVERSION DYNAMIQUE INDEX VERS FUTURES ====================
+float spx_price = request.security("SP:SPX", timeframe.period, close, barmerge.gaps_off, barmerge.lookahead_off)
+float ndx_price = request.security("NASDAQ:NDX", timeframe.period, close, barmerge.gaps_off, barmerge.lookahead_off)
 
-// Initialiser la conversion UNE SEULE FOIS au premier chargement
-if not conversion_initialized
-    spx_price := request.security("SP:SPX", timeframe.period, close, barmerge.gaps_off, barmerge.lookahead_off)
-    ndx_price := request.security("NASDAQ:NDX", timeframe.period, close, barmerge.gaps_off, barmerge.lookahead_off)
-    
-    if detected_ticker == "ES"
-        if str.contains(syminfo.ticker, "ES") and not str.contains(syminfo.ticker, "SPX")
-            conversion_multiplier := close / spx_price
-            needs_conversion := true
-    else if detected_ticker == "NQ"
-        if str.contains(syminfo.ticker, "NQ") and not str.contains(syminfo.ticker, "NDX")
-            conversion_multiplier := close / ndx_price
-            needs_conversion := true
-    
-    conversion_initialized := true
+float conversion_multiplier = 1.0
+bool needs_conversion = false
+
+if detected_ticker == "ES"
+    if str.contains(syminfo.ticker, "ES") and not str.contains(syminfo.ticker, "SPX")
+        conversion_multiplier := close / spx_price
+        needs_conversion := true
+else if detected_ticker == "NQ"
+    if str.contains(syminfo.ticker, "NQ") and not str.contains(syminfo.ticker, "NDX")
+        conversion_multiplier := close / ndx_price
+        needs_conversion := true
 
 
 // ==================== PARAMÈTRES ====================
@@ -375,7 +368,6 @@ process_csv(string csv_data) =>
                             float strike_price_raw = str.tonumber(field0)
                             int importance = int(str.tonumber(field1))
                             if not na(strike_price_raw) and not na(importance) and importance >= 7 and importance <= 10
-                                // APPLIQUER LA CONVERSION FIXE (calculée une seule fois)
                                 float strike_price = needs_conversion ? strike_price_raw * conversion_multiplier : strike_price_raw
                                 
                                 string level_type = array.get(fields, 2)
