@@ -142,12 +142,10 @@ clear_all_objects() =>
         for i = 0 to array.size(all_labels) - 1
             label.delete(array.get(all_labels, i))
         array.clear(all_labels)
-    if not na(metadata_label)
-        label.delete(metadata_label)
-        metadata_label := na
 
-parse_metadata(string meta_str) =>
-    string result = ""
+// FONCTION CORRIGÉE: Retourne le label au lieu de modifier la globale
+create_metadata_label(string meta_str, string pos) =>
+    string meta_text = ""
     if str.length(meta_str) > 0
         parts = str.split(meta_str, "|")
         for part in parts
@@ -155,8 +153,12 @@ parse_metadata(string meta_str) =>
             if array.size(kv) == 2
                 key = array.get(kv, 0)
                 val = array.get(kv, 1)
-                result := result + key + ": " + val + "\n"
-    result
+                meta_text := meta_text + key + ": " + val + "\n"
+    
+    string label_style = pos == "Top Right" ? label.style_label_lower_left : pos == "Top Left" ? label.style_label_lower_right : pos == "Bottom Right" ? label.style_label_upper_left : label.style_label_upper_right
+    float price_pos = pos == "Top Right" or pos == "Top Left" ? high : low
+    
+    label.new(x=bar_index, y=price_pos, text=meta_text, color=color.new(color.gray, 90), textcolor=color.white, style=label_style, size=size.small)
 
 process_csv(string csv_data) =>
     if bar_index == last_bar_index
@@ -218,14 +220,10 @@ if barstate.islast
     
     process_csv(csv_active)
     
-    // Afficher les métadonnées
+    // CORRECTION: Supprimer l'ancien label puis créer le nouveau
     if show_metadata and str.length(meta_active) > 0
-        string meta_text = parse_metadata(meta_active)
-        string pos = metadata_position
-        string label_style = pos == "Top Right" ? label.style_label_lower_left : pos == "Top Left" ? label.style_label_lower_right : pos == "Bottom Right" ? label.style_label_upper_left : label.style_label_upper_right
-        int y_pos = pos == "Top Right" or pos == "Top Left" ? bar_index : bar_index
-        float price_pos = pos == "Top Right" or pos == "Top Left" ? high : low
-        
-        metadata_label := label.new(x=bar_index, y=price_pos, text=meta_text, color=color.new(color.gray, 90), textcolor=color.white, style=label_style, size=size.small)
+        if not na(metadata_label)
+            label.delete(metadata_label)
+        metadata_label := create_metadata_label(meta_active, metadata_position)
 
 plot(close, title="Price", display=display.none)
