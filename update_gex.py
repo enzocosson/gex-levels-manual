@@ -1,7 +1,7 @@
 """
 Script de mise à jour GEX pour TradingView
 Génère les CSV ET l'indicateur Pine Script avec données hardcodées
-✅ Auto-détection ES/NQ + Sélecteur DTE
+Auto-détection ES/NQ + Sélecteur DTE + Conversion dynamique SPX/NDX
 """
 import requests
 import pandas as pd
@@ -10,17 +10,21 @@ import sys
 import os
 from config import *
 
+
 # ==================== CONFIGURATION ====================
 TICKERS = {
     'SPX': {'target': 'ES', 'description': 'SPX GEX for ES Futures'},
     'NDX': {'target': 'NQ', 'description': 'NDX GEX for NQ Futures'}
 }
 
+
 DTE_PERIODS = {'zero': 'ZERO', 'one': 'ONE', 'full': 'FULL'}
+
 
 def log(message):
     timestamp = datetime.now().strftime('%H:%M:%S')
     print(f"[{timestamp}] {message}")
+
 
 def fetch_gex_data(ticker, aggregation):
     url = f"{BASE_URL}/{ticker}/classic/{aggregation}?key={API_KEY}"
@@ -38,6 +42,7 @@ def fetch_gex_data(ticker, aggregation):
         log(f"❌ Erreur {ticker}/{aggregation}: {e}")
         return None
 
+
 def fetch_gex_majors(ticker, aggregation):
     url = f"{BASE_URL}/{ticker}/classic/{aggregation}/majors?key={API_KEY}"
     try:
@@ -46,6 +51,7 @@ def fetch_gex_majors(ticker, aggregation):
         return response.json()
     except:
         return None
+
 
 def calculate_advanced_levels(strikes, spot):
     call_resistance_total = 0
@@ -89,6 +95,7 @@ def calculate_advanced_levels(strikes, spot):
         'all_put_walls': put_walls[:5],
         'hvl_levels': hvl_candidates[:3]
     }
+
 
 def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_label):
     if not chain_data or not chain_data.get('strikes'):
@@ -217,13 +224,15 @@ def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_la
         return df
     return None
 
+
 def csv_to_pinescript_string(csv_content):
     """Convertit le contenu CSV en string échappé pour Pine Script"""
     escaped = csv_content.replace('"', '\\"').replace('\n', '\\n')
     return escaped
 
+
 def generate_pinescript_indicator(csv_data_dict):
-    """Génère le fichier Pine Script avec auto-détection ticker + sélecteur DTE"""
+    """Génère le fichier Pine Script avec auto-détection ticker + conversion dynamique"""
     
     es_zero_str = csv_data_dict.get('es_zero', '')
     es_one_str = csv_data_dict.get('es_one', '')
@@ -232,8 +241,10 @@ def generate_pinescript_indicator(csv_data_dict):
     nq_one_str = csv_data_dict.get('nq_one', '')
     nq_full_str = csv_data_dict.get('nq_full', '')
     
-    pinescript_code = f'''//@version=6
+    # Template Pine Script en plusieurs parties
+    part1 = f'''//@version=6
 indicator("GEX Professional Levels - Auto", overlay=true, max_lines_count=500, max_labels_count=500)
+
 
 // ==================== CSV DATA (AUTO-GENERATED) ====================
 string es_csv_zero = "{es_zero_str}"
@@ -242,6 +253,9 @@ string es_csv_full = "{es_full_str}"
 string nq_csv_zero = "{nq_zero_str}"
 string nq_csv_one = "{nq_one_str}"
 string nq_csv_full = "{nq_full_str}"
+'''
+    
+    part2 = '''
 
 // ==================== AUTO-DETECTION TICKER ====================
 string detected_ticker = "ES"
@@ -250,14 +264,34 @@ if str.contains(syminfo.ticker, "NQ") or str.contains(syminfo.ticker, "NDX") or 
 else if str.contains(syminfo.ticker, "ES") or str.contains(syminfo.ticker, "SPX") or str.contains(syminfo.ticker, "SP500")
     detected_ticker := "ES"
 
+
+// ==================== CONVERSION DYNAMIQUE INDEX VERS FUTURES ====================
+float spx_price = request.security("SP:SPX", timeframe.period, close, barmerge.gaps_off, barmerge.lookahead_off)
+float ndx_price = request.security("NASDAQ:NDX", timeframe.period, close, barmerge.gaps_off, barmerge.lookahead_off)
+
+float conversion_multiplier = 1.0
+bool needs_conversion = false
+
+if detected_ticker == "ES"
+    if str.contains(syminfo.ticker, "ES") and not str.contains(syminfo.ticker, "SPX")
+        conversion_multiplier := close / spx_price
+        needs_conversion := true
+else if detected_ticker == "NQ"
+    if str.contains(syminfo.ticker, "NQ") and not str.contains(syminfo.ticker, "NDX")
+        conversion_multiplier := close / ndx_price
+        needs_conversion := true
+
+
 // ==================== PARAMÈTRES ====================
 string selected_dte = input.string("0DTE", "📅 DTE Period", options=["0DTE", "1DTE", "FULL"], group="🎯 Settings", tooltip="Days To Expiration")
+
 
 // ==================== FILTRES PAR IMPORTANCE ====================
 bool show_imp_10 = input.bool(true, "Importance 10 (Gamma Flip/Walls)", group="🎯 Importance Filters")
 bool show_imp_9 = input.bool(true, "Importance 9 (HVL, 0DTE Levels)", group="🎯 Importance Filters")
 bool show_imp_8 = input.bool(true, "Importance 8 (Secondary Walls, Max Pain)", group="🎯 Importance Filters")
 bool show_imp_7 = input.bool(false, "Importance 7 (Strikes, Vol Triggers)", group="🎯 Importance Filters")
+
 
 // ==================== FILTRES PAR TYPE ====================
 bool show_gamma_flip = input.bool(true, "Zero Gamma", group="📌 Level Types")
@@ -268,6 +302,7 @@ bool show_max_pain = input.bool(true, "Max Pain", group="📌 Level Types")
 bool show_strikes = input.bool(false, "Top Strikes", group="📌 Level Types")
 bool show_vol_triggers = input.bool(false, "Vol Triggers", group="📌 Level Types")
 
+
 // ==================== STYLE ====================
 color color_gamma_flip = input.color(color.new(color.purple, 0), "Zero Gamma", group="🎨 Colors", inline="c1")
 color color_call_wall = input.color(color.new(color.red, 0), "Call Wall", group="🎨 Colors", inline="c2")
@@ -277,26 +312,32 @@ color color_0dte = input.color(color.new(color.yellow, 0), "0DTE Levels", group=
 color color_max_pain = input.color(color.new(color.blue, 0), "Max Pain", group="🎨 Colors", inline="c5")
 color color_strikes = input.color(color.new(color.gray, 30), "Strikes", group="🎨 Colors", inline="c6")
 
+
 bool show_labels = input.bool(true, "Show Labels", group="🏷️ Labels")
 string label_size = input.string("Small", "Label Size", options=["Tiny", "Small", "Normal", "Large"], group="🏷️ Labels")
 bool use_distance_filter = input.bool(false, "Filter Labels Near Price", group="🏷️ Labels")
 float label_min_distance_pct = input.float(0.3, "Min Distance from Price (%)", minval=0, maxval=5, step=0.1, group="🏷️ Labels")
 
+
 // ==================== STOCKAGE ====================
 var array<line> all_lines = array.new<line>()
 var array<label> all_labels = array.new<label>()
 
+
 // ==================== FONCTIONS ====================
 get_label_size(string size) =>
     size == "Tiny" ? size.tiny : size == "Small" ? size.small : size == "Normal" ? size.normal : size.large
+
 
 should_show_level(int importance, string level_type) =>
     bool show_importance = (importance == 10 and show_imp_10) or (importance == 9 and show_imp_9) or (importance == 8 and show_imp_8) or (importance == 7 and show_imp_7)
     bool show_type = (str.contains(level_type, "gamma_flip") and show_gamma_flip) or (str.contains(level_type, "gamma_wall") and show_gamma_walls) or (str.contains(level_type, "hvl") and show_hvl) or (str.contains(level_type, "0dte") and show_0dte_levels) or (str.contains(level_type, "max_pain") and show_max_pain) or (str.contains(level_type, "strike_") and show_strikes) or (str.contains(level_type, "vol_trigger") and show_vol_triggers) or str.contains(level_type, "call_wall") or str.contains(level_type, "put_wall")
     show_importance and show_type
 
+
 get_level_color(string level_type) =>
     str.contains(level_type, "gamma_flip") ? color_gamma_flip : str.contains(level_type, "gamma_wall_call") or str.contains(level_type, "call_wall") or str.contains(level_type, "call_res") ? color_call_wall : str.contains(level_type, "gamma_wall_put") or str.contains(level_type, "put_wall") or str.contains(level_type, "put_sup") ? color_put_wall : str.contains(level_type, "hvl") ? color_hvl : str.contains(level_type, "0dte") ? color_0dte : str.contains(level_type, "max_pain") ? color_max_pain : color_strikes
+
 
 clear_all_objects() =>
     if array.size(all_lines) > 0
@@ -307,6 +348,7 @@ clear_all_objects() =>
         for i = 0 to array.size(all_labels) - 1
             label.delete(array.get(all_labels, i))
         array.clear(all_labels)
+
 
 process_csv(string csv_data) =>
     if bar_index == last_bar_index
@@ -323,9 +365,11 @@ process_csv(string csv_data) =>
                         string field0 = array.get(fields, 0)
                         string field1 = array.get(fields, 1)
                         if str.length(field0) > 0 and str.length(field1) > 0
-                            float strike_price = str.tonumber(field0)
+                            float strike_price_raw = str.tonumber(field0)
                             int importance = int(str.tonumber(field1))
-                            if not na(strike_price) and not na(importance) and importance >= 7 and importance <= 10
+                            if not na(strike_price_raw) and not na(importance) and importance >= 7 and importance <= 10
+                                float strike_price = needs_conversion ? strike_price_raw * conversion_multiplier : strike_price_raw
+                                
                                 string level_type = array.get(fields, 2)
                                 string label_text = array.get(fields, 3)
                                 if should_show_level(importance, level_type)
@@ -343,11 +387,11 @@ process_csv(string csv_data) =>
                                             label new_label = label.new(x=bar_index, y=strike_price, text=simple_label, color=color.new(color.white, 100), textcolor=level_color, style=label.style_none, size=get_label_size(label_size))
                                             array.push(all_labels, new_label)
 
+
 // ==================== EXÉCUTION ====================
 if barstate.islast
     clear_all_objects()
     
-    // Sélectionner le CSV selon ticker détecté + DTE sélectionné
     string csv_active = ""
     
     if detected_ticker == "ES"
@@ -357,10 +401,12 @@ if barstate.islast
     
     process_csv(csv_active)
 
+
 plot(close, title="Price", display=display.none)
 '''
     
-    return pinescript_code
+    return part1 + part2
+
 
 def main():
     timestamp = datetime.now(timezone.utc)
@@ -381,7 +427,7 @@ def main():
     
     for source_ticker, config in TICKERS.items():
         target = config['target']
-        log(f"\n📊 Processing {source_ticker} → {target}")
+        log(f"\n📊 Processing {source_ticker} -> {target}")
         
         for dte_api_name, dte_label in DTE_PERIODS.items():
             log(f"\n   🔹 {dte_label}")
@@ -421,6 +467,7 @@ def main():
     log("=" * 70)
     
     sys.exit(0 if total_files > 0 else 1)
+
 
 if __name__ == '__main__':
     try:
