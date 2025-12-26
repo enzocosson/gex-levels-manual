@@ -1,16 +1,18 @@
 strike,importance,type,label,dte,description,call_res_all,put_sup_all
-25250,10,gamma_wall_call,Gamma Wall (Call),1DTE,959 GEX,2782.53,337.77
-25625,10,gamma_wall_put,Gamma Wall (Put),1DTE,87 GEX,2782.53,337.77
-25700,9,hvl,HVL #1,1DTE,779 GEX @ 0.2% from spot,2782.53,337.77
-25800,8,call_wall,Call Wall #3,1DTE,474 GEX,2782.53,337.77
-26000,8,call_wall,Call Wall #4,1DTE,453 GEX,2782.53,337.77
-25450,8,put_wall,Put Wall #2,1DTE,38 GEX,2782.53,337.77
-25725,8,put_wall,Put Wall #3,1DTE,31 GEX,2782.53,337.77
-25540,8,put_wall,Put Wall #4,1DTE,28 GEX,2782.53,337.77
-25190,8,max_pain,Max Pain,1DTE,Expiration Target,2782.53,337.77
-25600,7,strike_call,Call Resist,1DTE,419 GEX,2782.53,337.77
-25500,7,strike_call,Call Resist,1DTE,386 GEX,2782.53,337.77
-25620,7,strike_call,Call Resist,1DTE,166 GEX,2782.53,337.77
-26100,7,strike_call,Call Resist,1DTE,152 GEX,2782.53,337.77
-25950,7,strike_call,Call Resist,1DTE,148 GEX,2782.53,337.77
-25900,7,strike_call,Call Resist,1DTE,112 GEX,2782.53,337.77
+25250,10,gamma_wall_call,Gamma Wall (Call),0DTE ⚡,949 GEX,3344.749999999999,691.0
+25570,10,gamma_wall_put,Gamma Wall (Put),0DTE ⚡,67 GEX,3344.749999999999,691.0
+25700,9,hvl,HVL #1,0DTE ⚡,754 GEX @ 0.2% from spot,3344.749999999999,691.0
+25625,9,put_sup_0dte,PutSup0DTE #2,0DTE ⚡,Support 0DTE: 59 GEX,3344.749999999999,691.0
+25800,9,call_res_0dte,CallRes0DTE #2,0DTE ⚡,Resistance 0DTE: 484 GEX,3344.749999999999,691.0
+25300,8,put_wall,Put Wall #4,0DTE ⚡,41 GEX,3344.749999999999,691.0
+25400,8,max_pain,Max Pain,0DTE ⚡,Expiration Target,3344.749999999999,691.0
+25450,8,put_wall,Put Wall #3,0DTE ⚡,49 GEX,3344.749999999999,691.0
+26000,8,call_wall,Call Wall #4,0DTE ⚡,460 GEX,3344.749999999999,691.0
+25600,7,strike_call,Call Resist,0DTE ⚡,336 GEX,3344.749999999999,691.0
+26100,7,strike_call,Call Resist,0DTE ⚡,153 GEX,3344.749999999999,691.0
+25950,7,strike_call,Call Resist,0DTE ⚡,153 GEX,3344.749999999999,691.0
+25590,7,strike_call,Call Resist,0DTE ⚡,141 GEX,3344.749999999999,691.0
+25750,7,strike_call,Call Resist,0DTE ⚡,129 GEX,3344.749999999999,691.0
+25620,7,strike_call,Call Resist,0DTE ⚡,127 GEX,3344.749999999999,691.0
+25900,7,strike_call,Call Resist,0DTE ⚡,109 GEX,3344.749999999999,691.0
+25500,7,strike_call,Call Resist,0DTE ⚡,375 GEX,3344.749999999999,691.0
