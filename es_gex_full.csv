@@ -1,20 +1,19 @@
 strike,importance,type,label,dte,description,call_res_all,put_sup_all
-6928.8,10,gamma_flip,Zero Gamma,0DTE,Negative Gamma,440016.21,328457.65
-6935.0,10,gamma_wall_call,Gamma Wall (Call),0DTE,119397 GEX,440016.21,328457.65
-6925.0,10,gamma_wall_put,Gamma Wall (Put),0DTE,123713 GEX,440016.21,328457.65
-6940.0,9,hvl,HVL #3,0DTE,111433 GEX @ 0.1% from spot,440016.21,328457.65
-6920.0,9,put_sup_0dte,PutSup0DTE #2,0DTE,Support 0DTE: 93449 GEX,440016.21,328457.65
-6935.08,9,put_wall_api,Put Wall (Vol API),0DTE,Major from API,440016.21,328457.65
-6910.0,8,put_wall,Put Wall #4,0DTE,25768 GEX,440016.21,328457.65
-6915.0,8,put_wall,Put Wall #3,0DTE,37427 GEX,440016.21,328457.65
-6950.0,8,call_wall,Call Wall #4,0DTE,48326 GEX,440016.21,328457.65
-6945.0,8,call_wall,Call Wall #3,0DTE,50902 GEX,440016.21,328457.65
-7000.0,8,put_wall_api,Put Wall (OI API),0DTE,Major from API,440016.21,328457.65
-6700.0,8,call_wall_api,Call Wall (OI API),0DTE,Major from API,440016.21,328457.65
-7145.0,8,max_pain,Max Pain,0DTE,Expiration Target,440016.21,328457.65
-6930.0,7,strike_call,Call Resist,0DTE,37633 GEX,440016.21,328457.65
-6955.0,7,strike_call,Call Resist,0DTE,16924 GEX,440016.21,328457.65
-6960.0,7,strike_call,Call Resist,0DTE,13514 GEX,440016.21,328457.65
-6905.0,7,strike_put,Put Support,0DTE,9668 GEX,440016.21,328457.65
-6975.0,7,strike_call,Call Resist,0DTE,7736 GEX,440016.21,328457.65
-6970.0,7,strike_call,Call Resist,0DTE,7708 GEX,440016.21,328457.65
+6928.8,10,gamma_flip,Zero Gamma,0DTE,Negative Gamma,451500.94,374276.78
+6925.0,10,gamma_wall_put,Gamma Wall (Put),0DTE,145908 GEX,451500.94,374276.78
+6935.0,10,gamma_wall_call,Gamma Wall (Call),0DTE,131814 GEX,451500.94,374276.78
+6920.0,9,hvl,HVL #3,0DTE,109178 GEX @ 0.1% from spot,451500.94,374276.78
+6940.0,9,call_res_0dte,CallRes0DTE #2,0DTE,Resistance 0DTE: 89175 GEX,451500.94,374276.78
+6950.0,8,call_wall,Call Wall #4,0DTE,42731 GEX,451500.94,374276.78
+6910.0,8,put_wall,Put Wall #4,0DTE,27284 GEX,451500.94,374276.78
+6915.0,8,put_wall,Put Wall #3,0DTE,42008 GEX,451500.94,374276.78
+6930.0,8,call_wall,Call Wall #3,0DTE,44140 GEX,451500.94,374276.78
+7000.0,8,put_wall_api,Put Wall (OI API),0DTE,Major from API,451500.94,374276.78
+6700.0,8,call_wall_api,Call Wall (OI API),0DTE,Major from API,451500.94,374276.78
+7145.0,8,max_pain,Max Pain,0DTE,Expiration Target,451500.94,374276.78
+6945.0,7,strike_call,Call Resist,0DTE,39415 GEX,451500.94,374276.78
+6955.0,7,strike_call,Call Resist,0DTE,15046 GEX,451500.94,374276.78
+6960.0,7,strike_call,Call Resist,0DTE,11931 GEX,451500.94,374276.78
+6905.0,7,strike_put,Put Support,0DTE,9267 GEX,451500.94,374276.78
+6975.0,7,strike_call,Call Resist,0DTE,7690 GEX,451500.94,374276.78
+6970.0,7,strike_call,Call Resist,0DTE,7578 GEX,451500.94,374276.78
