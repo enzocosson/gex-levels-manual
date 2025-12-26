@@ -28,12 +28,25 @@ function App() {
   try {
     const raw = (lastUpdateRaw || "").trim();
     if (raw) {
-      const d = new Date(raw);
+      // Try parsing as-is first, then try common variants (space->T, ' UTC'->Z),
+      // then fall back to a manual ISO construction for formats like
+      // "YYYY-MM-DD HH:MM:SS UTC". If all fail, show the raw string.
+      let d = new Date(raw);
+      if (isNaN(d.getTime())) {
+        const isoVariant = raw.replace(" ", "T").replace(" UTC", "Z");
+        d = new Date(isoVariant);
+      }
+      if (isNaN(d.getTime())) {
+        const m = raw.match(/(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}:\d{2})/);
+        if (m) {
+          d = new Date(`${m[1]}T${m[2]}Z`);
+        }
+      }
       if (!isNaN(d.getTime())) {
         lastUpdate = d.toLocaleString("fr-FR", {
           dateStyle: "long",
           timeStyle: "short",
-          timeZone: "UTC",
+          timeZone: "Europe/Paris",
         });
       } else {
         lastUpdate = raw;
