@@ -1,6 +1,8 @@
 name: Update GEX Levels
 
 on:
+  # Se lance à chaque push (toutes branches)
+  push: {}
   # Se lance toutes les 5 minutes automatiquement
   schedule:
     - cron: "*/5 * * * *"
@@ -38,3 +40,14 @@ jobs:
         with:
           commit_message: "chore: update GEX data [auto]"
           file_pattern: "*.csv last_update.txt indicator/gex-levels.pine"
+
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: 📁 Install frontend deps and build
+        working-directory: ./frontend
+        run: |
+          npm ci
+          npm run build
