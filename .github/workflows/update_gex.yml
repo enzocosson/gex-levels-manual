@@ -1,14 +1,13 @@
 name: Update GEX Levels
 
 on:
-  push:
-    branches:
-      - main
+  # Se lance toutes les 5 minutes automatiquement
   schedule:
-    # every 5 minutes
     - cron: "*/5 * * * *"
+  # Permet de lancer manuellement
   workflow_dispatch:
 
+# Cette ligne donne la permission d'écrire dans le repo
 permissions:
   contents: write
 
@@ -19,29 +18,23 @@ jobs:
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v4
-        with:
-          # ensure the token persists for later pushes
-          persist-credentials: true
 
       - name: 🐍 Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
+          python-version: "3.11"
+          cache: "pip"
 
-      - name: 📦 Install
+      - name: 📦 Install dependencies
         run: pip install -r requirements.txt
 
-      - name: 🔄 Update
+      - name: 🔄 Run update script
         env:
           GEXBOT_API_KEY: ${{ secrets.GEXBOT_API_KEY }}
         run: python update_gex.py
 
-      - name: 💾 Commit
+      - name: 💾 Commit changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore: Update GEX data [auto]"
-          # Commit only CSVs and the last_update file. Avoid failing when
-          # optional patterns (e.g. *.pine) have no matches in the repo.
-          file_pattern: "*.csv last_update.txt"
-          # pass the token explicitly (uses the built-in GITHUB_TOKEN)
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          commit_message: "chore: update GEX data [auto]"
+          file_pattern: "*.csv last_update.txt indicator/gex-levels.pine"

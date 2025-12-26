@@ -9,6 +9,36 @@ Indicateur automatique GEX pour ES et NQ.
 \`\`\`bash
 git clone https://github.com/enzocosson/gex-tradingview.git
 cd gex-tradingview
+
+## 📦 Déploiement sur Vercel
+
+Ce dépôt contient une application frontend construite avec Vite dans le dossier `frontend`. Voici les instructions pour déployer rapidement avec la CLI Vercel.
+
+- Installer la CLI Vercel (globalement) :
+
+```bash
+npm i -g vercel
+# ou : pnpm add -g vercel
+```
+
+- Se connecter (une seule fois) :
+
+```bash
+vercel login
+```
+
+- Déployer depuis la racine en ciblant le dossier `frontend` :
+
+```bash
+vercel --cwd frontend
+# pour une mise en production :
+vercel --cwd frontend --prod
+```
+
+La configuration de build se trouve dans `vercel.json` (racine) : Vercel utilisera `frontend/package.json` et la commande `npm run build` pour produire le dossier `dist`.
+
+Alternative : créer un projet depuis l'interface Vercel et définir la `Root Directory` sur `frontend`.
+
 pip install -r requirements.txt
 echo "GEXBOT_API_KEY=votre_cle" > .env
 python update_gex.py
