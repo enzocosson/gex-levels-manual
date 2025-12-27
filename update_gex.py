@@ -129,24 +129,26 @@ def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_la
     dte_display = f"0DTE" if is_zero_dte else f"{front_expiry_dte}DTE"
     
     log(f"   📊 {target}/{dte_label} - Spot: {spot_price}, {dte_display}")
+    log(f"      Zero Gamma: {volatility_trigger}")
     advanced = calculate_advanced_levels(strike_gex_curve, spot_price)
     log(f"      CallResAll: {advanced['call_res_all']:.0f} GEX")
     log(f"      PutSupAll: {advanced['put_sup_all']:.0f} GEX")
     
     levels = []
     
-    # IMPORTANCE 10 - Niveaux critiques
+    # IMPORTANCE 10 - Volatility Trigger (Zero Gamma)
     if volatility_trigger and volatility_trigger != 0:
         regime = "Negative Gamma" if spot_price > volatility_trigger else "Positive Gamma"
         levels.append({
             'strike': round(volatility_trigger, 2), 
             'importance': 10, 
-            'type': 'volatility_trigger', 
-            'label': 'Volatility Trigger', 
+            'type': 'zero_gamma', 
+            'label': 'Zero Gamma', 
             'dte': dte_display, 
-            'description': f"Gamma flip point - {regime}"
+            'description': f"Vol trigger - {regime}"
         })
     
+    # IMPORTANCE 10 - Major Walls (les vrais majors)
     if advanced['top_call_wall']:
         cw = advanced['top_call_wall']
         levels.append({
@@ -155,7 +157,7 @@ def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_la
             'type': 'major_call_wall', 
             'label': 'Major Call Wall', 
             'dte': dte_display, 
-            'description': f"Primary resistance - {cw['abs_gex']:.0f} GEX"
+            'description': f"Primary call resistance - {cw['abs_gex']:.0f} GEX"
         })
     
     if advanced['top_put_wall']:
@@ -166,20 +168,21 @@ def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_la
             'type': 'major_put_wall', 
             'label': 'Major Put Wall', 
             'dte': dte_display, 
-            'description': f"Primary support - {pw['abs_gex']:.0f} GEX"
+            'description': f"Primary put support - {pw['abs_gex']:.0f} GEX"
         })
     
-    # IMPORTANCE 9 - HVL et 0DTE
+    # IMPORTANCE 9 - HVL
     for idx, hvl in enumerate(advanced['hvl_levels']):
         levels.append({
             'strike': round(hvl['strike'], 2), 
             'importance': 9, 
             'type': 'high_vol_level', 
-            'label': f"High Vol Level #{idx+1}", 
+            'label': f"HVL #{idx+1}", 
             'dte': dte_display, 
-            'description': f"HVL zone - {hvl['abs_gex']:.0f} GEX @ {hvl['distance_pct']:.1f}% from spot"
+            'description': f"High vol zone - {hvl['abs_gex']:.0f} GEX @ {hvl['distance_pct']:.1f}%"
         })
     
+    # IMPORTANCE 9 - 0DTE Walls (sans "Major")
     if is_zero_dte:
         put_0dte = [p for p in advanced['all_put_walls'][:3] if p['strike'] < spot_price]
         for idx, ps in enumerate(put_0dte[:2]):
@@ -203,24 +206,24 @@ def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_la
                 'description': f"0DTE call resistance - {cr['abs_gex']:.0f} GEX"
             })
     
-    # IMPORTANCE 9/8 - Walls from API
+    # IMPORTANCE 9/8 - Walls from API (sans "Major")
     if call_wall_volume and call_wall_volume != 0:
         levels.append({
             'strike': round(call_wall_volume, 2), 
             'importance': 9, 
             'type': 'call_wall_volume', 
-            'label': 'Call Wall (Volume)', 
+            'label': 'Call Wall (Vol)', 
             'dte': dte_display, 
-            'description': 'Major call wall detected via volume'
+            'description': 'Call wall from volume data'
         })
     if put_wall_volume and put_wall_volume != 0:
         levels.append({
             'strike': round(put_wall_volume, 2), 
             'importance': 9, 
             'type': 'put_wall_volume', 
-            'label': 'Put Wall (Volume)', 
+            'label': 'Put Wall (Vol)', 
             'dte': dte_display, 
-            'description': 'Major put wall detected via volume'
+            'description': 'Put wall from volume data'
         })
     if call_wall_oi and call_wall_oi != 0:
         levels.append({
@@ -229,7 +232,7 @@ def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_la
             'type': 'call_wall_oi', 
             'label': 'Call Wall (OI)', 
             'dte': dte_display, 
-            'description': 'Major call wall detected via open interest'
+            'description': 'Call wall from open interest'
         })
     if put_wall_oi and put_wall_oi != 0:
         levels.append({
@@ -238,7 +241,7 @@ def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_la
             'type': 'put_wall_oi', 
             'label': 'Put Wall (OI)', 
             'dte': dte_display, 
-            'description': 'Major put wall detected via open interest'
+            'description': 'Put wall from open interest'
         })
     
     # IMPORTANCE 8 - Secondary Walls
@@ -246,19 +249,19 @@ def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_la
         levels.append({
             'strike': round(cw['strike'], 2), 
             'importance': 8, 
-            'type': 'call_resistance', 
-            'label': f"Call Resistance #{idx}", 
+            'type': 'call_wall_secondary', 
+            'label': f"Call Wall #{idx}", 
             'dte': dte_display, 
-            'description': f"Secondary call wall - {cw['abs_gex']:.0f} GEX"
+            'description': f"Secondary call resistance - {cw['abs_gex']:.0f} GEX"
         })
     for idx, pw in enumerate(advanced['all_put_walls'][1:4], 2):
         levels.append({
             'strike': round(pw['strike'], 2), 
             'importance': 8, 
-            'type': 'put_support', 
-            'label': f"Put Support #{idx}", 
+            'type': 'put_wall_secondary', 
+            'label': f"Put Wall #{idx}", 
             'dte': dte_display, 
-            'description': f"Secondary put wall - {pw['abs_gex']:.0f} GEX"
+            'description': f"Secondary put support - {pw['abs_gex']:.0f} GEX"
         })
     
     # IMPORTANCE 7 - Individual Strikes
@@ -280,7 +283,7 @@ def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_la
     strikes_data.sort(key=lambda x: x['total_gex'], reverse=True)
     for s in strikes_data[:15]:
         strike_type = "Call Strike" if s['is_call'] else "Put Strike"
-        strike_desc = "Individual call resistance" if s['is_call'] else "Individual put support"
+        strike_desc = "Call strike" if s['is_call'] else "Put strike"
         levels.append({
             'strike': s['strike'], 
             'importance': 7, 
@@ -312,7 +315,7 @@ def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_la
                         'type': 'vol_trigger', 
                         'label': label, 
                         'dte': dte_display, 
-                        'description': f"Volatility trigger - GEX change: {gex_change:+.0f} over {interval_name}"
+                        'description': f"Vol trigger - GEX Δ {gex_change:+.0f} ({interval_name})"
                     })
     
     # IMPORTANCE 8 - Max Pain
@@ -332,10 +335,10 @@ def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_la
         levels.append({
             'strike': round(max_pain, 2), 
             'importance': 8, 
-            'type': 'max_pain_level', 
-            'label': 'Max Pain Level', 
+            'type': 'max_pain', 
+            'label': 'Max Pain', 
             'dte': dte_display, 
-            'description': 'Expiration target - minimum GEX strike'
+            'description': 'Expiration target - min GEX'
         })
     
     df = pd.DataFrame(levels)
@@ -359,6 +362,7 @@ def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_la
         log(f"      ✅ {len(df)} niveaux générés")
         return df, metadata
     return None, None
+
 
 
 def csv_to_pinescript_string(csv_content):
