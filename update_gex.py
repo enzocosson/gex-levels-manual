@@ -12,6 +12,7 @@ from config import *
 
 
 
+
 # ==================== CONFIGURATION ====================
 TICKERS = {
     'SPX': {'target': 'ES', 'description': 'SPX GEX for ES Futures', 'multiplier': 1.00685},
@@ -19,12 +20,15 @@ TICKERS = {
 }
 
 
+
 DTE_PERIODS = {'zero': 'ZERO', 'one': 'ONE', 'full': 'FULL'}
+
 
 
 def log(message):
     timestamp = datetime.now().strftime('%H:%M:%S')
     print(f"[{timestamp}] {message}")
+
 
 
 def fetch_gex_data(ticker, aggregation):
@@ -44,6 +48,7 @@ def fetch_gex_data(ticker, aggregation):
         return None
 
 
+
 def fetch_gex_majors(ticker, aggregation):
     url = f"{BASE_URL}/{ticker}/classic/{aggregation}/majors?key={API_KEY}"
     try:
@@ -52,6 +57,7 @@ def fetch_gex_majors(ticker, aggregation):
         return response.json()
     except:
         return None
+
 
 
 def calculate_advanced_levels(strikes, spot):
@@ -96,6 +102,7 @@ def calculate_advanced_levels(strikes, spot):
         'all_put_walls': put_walls[:5],
         'hvl_levels': hvl_candidates[:3]
     }
+
 
 
 def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_label):
@@ -365,10 +372,12 @@ def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_la
 
 
 
+
 def csv_to_pinescript_string(csv_content):
     """Convertit le contenu CSV en string échappé pour Pine Script"""
     escaped = csv_content.replace('"', '\\"').replace('\n', '\\n')
     return escaped
+
 
 
 def metadata_to_pinescript_string(metadata_dict):
@@ -384,6 +393,7 @@ def metadata_to_pinescript_string(metadata_dict):
     meta_str += f"CallResAll:{metadata_dict.get('call_res_all', 0):.2f}|"
     meta_str += f"PutSupAll:{metadata_dict.get('put_sup_all', 0):.2f}"
     return meta_str
+
 
 
 def generate_pinescript_indicator(csv_data_dict, metadata_dict):
@@ -410,6 +420,7 @@ def generate_pinescript_indicator(csv_data_dict, metadata_dict):
 indicator("GEX Professional Levels", overlay=true, max_lines_count=500, max_labels_count=500)
 
 
+
 // ==================== CSV DATA (AUTO-GENERATED) ====================
 string es_csv_zero = "{es_zero_str}"
 string es_csv_one = "{es_one_str}"
@@ -417,6 +428,7 @@ string es_csv_full = "{es_full_str}"
 string nq_csv_zero = "{nq_zero_str}"
 string nq_csv_one = "{nq_one_str}"
 string nq_csv_full = "{nq_full_str}"
+
 
 
 // ==================== METADATA ====================
@@ -428,6 +440,7 @@ string nq_meta_one = "{nq_one_meta}"
 string nq_meta_full = "{nq_full_meta}"
 
 
+
 // ==================== AUTO-DETECTION TICKER ====================
 string detected_ticker = "ES"
 if str.contains(syminfo.ticker, "NQ") or str.contains(syminfo.ticker, "NDX") or str.contains(syminfo.ticker, "NAS")
@@ -436,13 +449,16 @@ else if str.contains(syminfo.ticker, "ES") or str.contains(syminfo.ticker, "SPX"
     detected_ticker := "ES"
 
 
+
 // ==================== MULTIPLICATEURS FIXES ====================
 float SPX_MULTIPLIER = {spx_multiplier}
 float NDX_MULTIPLIER = {ndx_multiplier}
 
 
+
 float conversion_multiplier = 1.0
 bool needs_conversion = false
+
 
 
 if detected_ticker == "ES"
@@ -455,8 +471,10 @@ else if detected_ticker == "NQ"
         needs_conversion := true
 
 
+
 // ==================== PARAMÈTRES ====================
 string selected_dte = input.string("0DTE", "📅 DTE Period", options=["0DTE", "1DTE", "FULL"], group="🎯 Settings", tooltip="Days To Expiration")
+
 
 
 // ==================== FILTRES PAR IMPORTANCE ====================
@@ -464,6 +482,7 @@ bool show_imp_10 = input.bool(true, "Importance 10 (Major Walls/Volatility Trigg
 bool show_imp_9 = input.bool(true, "Importance 9 (High Vol Levels, 0DTE Walls)", group="🎯 Importance Filters")
 bool show_imp_8 = input.bool(true, "Importance 8 (Secondary Walls, Max Pain)", group="🎯 Importance Filters")
 bool show_imp_7 = input.bool(false, "Importance 7 (Individual Strikes, Vol Triggers)", group="🎯 Importance Filters")
+
 
 
 // ==================== FILTRES PAR TYPE ====================
@@ -475,6 +494,7 @@ bool show_secondary_walls = input.bool(true, "Secondary Walls", group="📌 Leve
 bool show_max_pain = input.bool(true, "Max Pain Level", group="📌 Level Types", tooltip="Expiration target strike")
 bool show_individual_strikes = input.bool(false, "Individual Strikes", group="📌 Level Types", tooltip="Top 15 strikes by GEX")
 bool show_vol_triggers = input.bool(false, "Vol Triggers (Timeframe)", group="📌 Level Types", tooltip="GEX change triggers by interval")
+
 
 
 // ==================== STYLE ====================
@@ -489,6 +509,7 @@ color color_strikes = input.color(color.new(color.silver, 50), "Individual Strik
 color color_vol_trigger = input.color(color.new(color.fuchsia, 0), "Vol Triggers", group="🎨 Colors", inline="c9")
 
 
+
 // ==================== LABEL SETTINGS ====================
 bool show_labels = input.bool(true, "Show Labels", group="🏷️ Labels", tooltip="Display level labels on chart")
 bool show_descriptions = input.bool(false, "Show Descriptions", group="🏷️ Labels", tooltip="Add detailed descriptions to labels")
@@ -497,8 +518,15 @@ bool use_distance_filter = input.bool(false, "Filter Labels Near Price", group="
 float label_min_distance_pct = input.float(0.3, "Min Distance from Price (%)", minval=0, maxval=5, step=0.1, group="🏷️ Labels")
 
 
+
 // ==================== METADATA DISPLAY ====================
 bool show_metadata = input.bool(false, "Show Market Info Table", group="📊 Metadata", tooltip="Display GEX metadata table (separate from chart)")
+
+
+
+// ==================== DEFINITIONS TABLE ====================
+bool show_definitions = input.bool(false, "Afficher les Définitions", group="📖 Aide", tooltip="Tableau des définitions des termes GEX")
+
 
 
 // ==================== STOCKAGE ====================
@@ -506,9 +534,11 @@ var array<line> all_lines = array.new<line>()
 var array<label> all_labels = array.new<label>()
 
 
+
 // ==================== FONCTIONS ====================
 get_label_size(string size) =>
     size == "Tiny" ? size.tiny : size == "Small" ? size.small : size == "Normal" ? size.normal : size.large
+
 
 
 should_show_level(int importance, string level_type) =>
@@ -535,6 +565,7 @@ should_show_level(int importance, string level_type) =>
     show_importance and show_type
 
 
+
 get_level_color(string level_type) =>
     color result = color_strikes
     if str.contains(level_type, "volatility_trigger")
@@ -556,6 +587,7 @@ get_level_color(string level_type) =>
     result
 
 
+
 clear_all_objects() =>
     if array.size(all_lines) > 0
         for i = 0 to array.size(all_lines) - 1
@@ -565,6 +597,7 @@ clear_all_objects() =>
         for i = 0 to array.size(all_labels) - 1
             label.delete(array.get(all_labels, i))
         array.clear(all_labels)
+
 
 
 process_csv(string csv_data) =>
@@ -612,6 +645,7 @@ process_csv(string csv_data) =>
                                             array.push(all_labels, new_label)
 
 
+
 // ==================== EXÉCUTION ====================
 if barstate.islast
     clear_all_objects()
@@ -628,7 +662,7 @@ if barstate.islast
     
     process_csv(csv_active)
     
-    // Afficher la table de métadonnées (directement dans le bloc principal)
+    // Afficher la table de métadonnées
     if show_metadata and str.length(meta_active) > 0
         var table meta_tbl = table.new(position.top_right, 2, 11, bgcolor=color.new(color.gray, 85), border_width=1, border_color=color.new(color.white, 50))
         
@@ -647,12 +681,64 @@ if barstate.islast
                 table.cell(meta_tbl, 0, row, key, text_color=color.white, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
                 table.cell(meta_tbl, 1, row, val, text_color=color.yellow, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
                 row := row + 1
+    
+    // Afficher le tableau des définitions
+    if show_definitions
+        var table def_tbl = table.new(position.bottom_left, 2, 11, bgcolor=color.new(color.gray, 85), border_width=1, border_color=color.new(color.white, 50))
+        
+        table.clear(def_tbl, 0, 0, 1, 10)
+        
+        // En-tête
+        table.cell(def_tbl, 0, 0, "📖 TERMES GEX", text_color=color.white, text_size=size.small, bgcolor=color.new(color.purple, 70))
+        table.cell(def_tbl, 1, 0, "DÉFINITION", text_color=color.white, text_size=size.small, bgcolor=color.new(color.purple, 70))
+        
+        // GEX
+        table.cell(def_tbl, 0, 1, "GEX", text_color=color.white, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 1, "Gamma Exposure - Volume de couverture nécessaire aux market makers pour un mouvement de 1%", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        // Zero Gamma / Volatility Trigger
+        table.cell(def_tbl, 0, 2, "Zero Gamma", text_color=color.purple, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 2, "Point de bascule où le gamma net = 0. Au-dessus: volatilité amplifiée. En dessous: volatilité supprimée", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        // Major Call Wall
+        table.cell(def_tbl, 0, 3, "Major Call Wall", text_color=color.red, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 3, "Résistance primaire - Strike call avec le plus fort GEX. Les MM vendent en approchant ce niveau", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        // Major Put Wall
+        table.cell(def_tbl, 0, 4, "Major Put Wall", text_color=color.green, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 4, "Support primaire - Strike put avec le plus fort GEX. Les MM achètent en approchant ce niveau", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        // HVL
+        table.cell(def_tbl, 0, 5, "HVL", text_color=color.orange, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 5, "High Vol Level - Zone de fort GEX proche du spot (<1.5%). Intensifie les mouvements de prix", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        // 0DTE Walls
+        table.cell(def_tbl, 0, 6, "0DTE Walls", text_color=color.yellow, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 6, "Murs d'expiration jour même - Support/résistance actifs uniquement le jour d'expiration", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        // Max Pain
+        table.cell(def_tbl, 0, 7, "Max Pain", text_color=color.blue, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 7, "Strike où le GEX total est minimal - Cible d'expiration théorique où les options perdent le plus", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        // Vol Trigger
+        table.cell(def_tbl, 0, 8, "Vol Trigger", text_color=color.fuchsia, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 8, "Strike avec variation GEX significative sur intervalle temporel - Signal de changement de flux", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        // DTE
+        table.cell(def_tbl, 0, 9, "DTE", text_color=color.white, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 9, "Days To Expiration - Jours avant expiration des options (0DTE = jour même, 1DTE = lendemain)", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        // Positive/Negative Gamma
+        table.cell(def_tbl, 0, 10, "Gamma Regime", text_color=color.white, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 10, "Pos: MM stabilisent (achètent bas/vendent haut). Neg: MM amplifient (achètent haut/vendent bas)", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+
 
 
 plot(close, title="Price", display=display.none)
 '''
     
     return pine_script
+
 
 
 
@@ -721,6 +807,7 @@ def main():
     log("=" * 70)
     
     sys.exit(0 if total_files > 0 else 1)
+
 
 
 if __name__ == '__main__':
