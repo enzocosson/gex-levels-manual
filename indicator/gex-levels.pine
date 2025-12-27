@@ -1,24 +1,21 @@
 //@version=6
 indicator("GEX Professional Levels", overlay=true, max_lines_count=500, max_labels_count=500)
 
-
 // ==================== CSV DATA (AUTO-GENERATED) ====================
-string es_csv_zero = "strike,importance,type,label,dte,description\n6925.26,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Negative Gamma\n6925.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 69249 GEX\n6930.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 2056788 GEX\n6935.0,9,high_vol_level,HVL #2,0DTE,High vol zone - 158857 GEX @ 0.1%\n6920.0,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 69061 GEX\n6923.8,9,put_wall_volume,Put Wall (Vol),0DTE,Put wall from volume data\n6945.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 14532 GEX\n6910.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 8398 GEX\n6915.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 17931 GEX\n6940.0,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 49048 GEX\n6919.92,8,put_wall_oi,Put Wall (OI),0DTE,Put wall from open interest\n7105.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX\n6950.0,7,strike_call,Call Strike,0DTE,Call strike - 12154 GEX\n6955.0,7,strike_call,Call Strike,0DTE,Call strike - 7671 GEX\n6960.0,7,strike_call,Call Strike,0DTE,Call strike - 5304 GEX\n6905.0,7,strike_put,Put Strike,0DTE,Put strike - 5259 GEX\n6965.0,7,strike_call,Call Strike,0DTE,Call strike - 1633 GEX\n6900.0,7,strike_put,Put Strike,0DTE,Put strike - 1439 GEX\n6970.0,7,strike_call,Call Strike,0DTE,Call strike - 1393 GEX\n"
-string es_csv_one = "strike,importance,type,label,dte,description\n6928.39,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Negative Gamma\n6900.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 2546 GEX\n6950.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 7470 GEX\n6955.0,9,high_vol_level,HVL #2,0DTE,High vol zone - 5038 GEX @ 0.4%\n6940.0,9,high_vol_level,HVL #3,0DTE,High vol zone - 3632 GEX @ 0.1%\n6920.0,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 1618 GEX\n6945.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 3558 GEX\n6895.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 1164 GEX\n6910.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 1262 GEX\n6880.0,8,put_wall_oi,Put Wall (OI),0DTE,Put wall from open interest\n6930.0,8,call_wall_oi,Call Wall (OI),0DTE,Call wall from open interest\n7140.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX\n6960.0,7,strike_call,Call Strike,0DTE,Call strike - 3431 GEX\n6970.0,7,strike_call,Call Strike,0DTE,Call strike - 2426 GEX\n6965.0,7,strike_call,Call Strike,0DTE,Call strike - 2002 GEX\n6935.0,7,strike_call,Call Strike,0DTE,Call strike - 1957 GEX\n6975.0,7,strike_call,Call Strike,0DTE,Call strike - 1441 GEX\n6885.0,7,strike_put,Put Strike,0DTE,Put strike - 972 GEX\n"
-string es_csv_full = "strike,importance,type,label,dte,description\n6925.26,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Negative Gamma\n6920.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 68466 GEX\n6930.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 2060619 GEX\n6935.0,9,high_vol_level,HVL #2,0DTE,High vol zone - 162158 GEX @ 0.1%\n6925.0,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 64259 GEX\n6923.8,9,put_wall_volume,Put Wall (Vol),0DTE,Put wall from volume data\n6950.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 31706 GEX\n6910.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 9055 GEX\n6915.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 16819 GEX\n6940.0,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 55304 GEX\n6700.0,8,put_wall_oi,Put Wall (OI),0DTE,Put wall from open interest\n7145.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX\n7000.0,7,strike_call,Call Strike,0DTE,Call strike - 20860 GEX\n6945.0,7,strike_call,Call Strike,0DTE,Call strike - 20662 GEX\n6955.0,7,strike_call,Call Strike,0DTE,Call strike - 17251 GEX\n6960.0,7,strike_call,Call Strike,0DTE,Call strike - 13729 GEX\n6975.0,7,strike_call,Call Strike,0DTE,Call strike - 8604 GEX\n6970.0,7,strike_call,Call Strike,0DTE,Call strike - 8508 GEX\n6980.0,7,strike_call,Call Strike,0DTE,Call strike - 6255 GEX\n"
-string nq_csv_zero = "strike,importance,type,label,dte,description\n25641.66,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Negative Gamma\n25640.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 6916 GEX\n25650.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 42747 GEX\n25630.0,9,high_vol_level,HVL #3,0DTE,High vol zone - 5403 GEX @ 0.1%\n25700.0,9,call_wall_0dte,Call Wall 0DTE #2,0DTE,0DTE call resistance - 1489 GEX\n25639.48,9,put_wall_volume,Put Wall (Vol),0DTE,Put wall from volume data\n25730.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 475 GEX\n25660.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 2445 GEX\n25620.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 2639 GEX\n25720.0,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 555 GEX\n25670.0,8,put_wall_oi,Put Wall (OI),0DTE,Put wall from open interest\n26160.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX\n25625.0,7,strike_put,Put Strike,0DTE,Put strike - 2193 GEX\n25675.0,7,strike_put,Put Strike,0DTE,Put strike - 1181 GEX\n25610.0,7,strike_put,Put Strike,0DTE,Put strike - 1157 GEX\n25590.0,7,strike_put,Put Strike,0DTE,Put strike - 844 GEX\n25580.0,7,strike_put,Put Strike,0DTE,Put strike - 706 GEX\n25570.0,7,strike_put,Put Strike,0DTE,Put strike - 351 GEX\n"
-string nq_csv_one = "strike,importance,type,label,dte,description\n25556.78,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Negative Gamma\n25700.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 309 GEX\n25500.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 99 GEX\n25580.0,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 65 GEX\n25710.0,9,call_wall_0dte,Call Wall 0DTE #2,0DTE,0DTE call resistance - 254 GEX\n25560.0,8,put_wall_oi,Put Wall (OI),0DTE,Put wall from open interest\n25750.0,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 189 GEX\n25730.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 134 GEX\n25510.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 60 GEX\n25480.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 59 GEX\n26130.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX\n25680.0,7,strike_call,Call Strike,0DTE,Call strike - 117 GEX\n25660.0,7,strike_call,Call Strike,0DTE,Call strike - 102 GEX\n"
-string nq_csv_full = "strike,importance,type,label,dte,description\n25641.66,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Negative Gamma\n25640.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 6888 GEX\n25650.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 42859 GEX\n25630.0,9,high_vol_level,HVL #3,0DTE,High vol zone - 5399 GEX @ 0.1%\n25700.0,9,call_wall_0dte,Call Wall 0DTE #2,0DTE,0DTE call resistance - 1948 GEX\n25639.48,9,put_wall_volume,Put Wall (Vol),0DTE,Put wall from volume data\n25720.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 636 GEX\n25660.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 2338 GEX\n25620.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 2662 GEX\n25250.0,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 972 GEX\n25670.0,8,put_wall_oi,Put Wall (OI),0DTE,Put wall from open interest\n26110.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX\n25625.0,7,strike_put,Put Strike,0DTE,Put strike - 2150 GEX\n25610.0,7,strike_put,Put Strike,0DTE,Put strike - 1200 GEX\n25675.0,7,strike_put,Put Strike,0DTE,Put strike - 1108 GEX\n25590.0,7,strike_put,Put Strike,0DTE,Put strike - 887 GEX\n25580.0,7,strike_put,Put Strike,0DTE,Put strike - 776 GEX\n25730.0,7,strike_call,Call Strike,0DTE,Call strike - 616 GEX\n"
-
+string es_csv_zero = "strike,importance,type,label,dte,description\n6925.26,10,zero_gamma,Zero Gamma,0DTE,Gamma flip point - Negative Gamma\n6925.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 69249 GEX\n6930.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 2056788 GEX\n6935.0,9,high_vol_level,HVL #2,0DTE,High vol zone - 158857 GEX @ 0.1%\n6920.0,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 69061 GEX\n6923.8,9,put_wall_volume,Put Wall (Vol),0DTE,Put wall from volume data\n6945.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 14532 GEX\n6910.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 8398 GEX\n6915.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 17931 GEX\n6940.0,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 49048 GEX\n6919.92,8,put_wall_oi,Put Wall (OI),0DTE,Put wall from open interest\n7105.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX\n6950.0,7,strike_call,Call Strike,0DTE,Call strike - 12154 GEX\n6955.0,7,strike_call,Call Strike,0DTE,Call strike - 7671 GEX\n6960.0,7,strike_call,Call Strike,0DTE,Call strike - 5304 GEX\n6905.0,7,strike_put,Put Strike,0DTE,Put strike - 5259 GEX\n6965.0,7,strike_call,Call Strike,0DTE,Call strike - 1633 GEX\n6900.0,7,strike_put,Put Strike,0DTE,Put strike - 1439 GEX\n6970.0,7,strike_call,Call Strike,0DTE,Call strike - 1393 GEX\n"
+string es_csv_one = "strike,importance,type,label,dte,description\n6928.39,10,zero_gamma,Zero Gamma,0DTE,Gamma flip point - Negative Gamma\n6900.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 2546 GEX\n6950.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 7470 GEX\n6955.0,9,high_vol_level,HVL #2,0DTE,High vol zone - 5038 GEX @ 0.4%\n6940.0,9,high_vol_level,HVL #3,0DTE,High vol zone - 3632 GEX @ 0.1%\n6920.0,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 1618 GEX\n6945.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 3558 GEX\n6895.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 1164 GEX\n6910.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 1262 GEX\n6880.0,8,put_wall_oi,Put Wall (OI),0DTE,Put wall from open interest\n6930.0,8,call_wall_oi,Call Wall (OI),0DTE,Call wall from open interest\n7140.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX\n6960.0,7,strike_call,Call Strike,0DTE,Call strike - 3431 GEX\n6970.0,7,strike_call,Call Strike,0DTE,Call strike - 2426 GEX\n6965.0,7,strike_call,Call Strike,0DTE,Call strike - 2002 GEX\n6935.0,7,strike_call,Call Strike,0DTE,Call strike - 1957 GEX\n6975.0,7,strike_call,Call Strike,0DTE,Call strike - 1441 GEX\n6885.0,7,strike_put,Put Strike,0DTE,Put strike - 972 GEX\n"
+string es_csv_full = "strike,importance,type,label,dte,description\n6925.26,10,zero_gamma,Zero Gamma,0DTE,Gamma flip point - Negative Gamma\n6920.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 68466 GEX\n6930.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 2060619 GEX\n6935.0,9,high_vol_level,HVL #2,0DTE,High vol zone - 162158 GEX @ 0.1%\n6925.0,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 64259 GEX\n6923.8,9,put_wall_volume,Put Wall (Vol),0DTE,Put wall from volume data\n6950.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 31706 GEX\n6910.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 9055 GEX\n6915.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 16819 GEX\n6940.0,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 55304 GEX\n6700.0,8,put_wall_oi,Put Wall (OI),0DTE,Put wall from open interest\n7145.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX\n7000.0,7,strike_call,Call Strike,0DTE,Call strike - 20860 GEX\n6945.0,7,strike_call,Call Strike,0DTE,Call strike - 20662 GEX\n6955.0,7,strike_call,Call Strike,0DTE,Call strike - 17251 GEX\n6960.0,7,strike_call,Call Strike,0DTE,Call strike - 13729 GEX\n6975.0,7,strike_call,Call Strike,0DTE,Call strike - 8604 GEX\n6970.0,7,strike_call,Call Strike,0DTE,Call strike - 8508 GEX\n6980.0,7,strike_call,Call Strike,0DTE,Call strike - 6255 GEX\n"
+string nq_csv_zero = "strike,importance,type,label,dte,description\n25641.66,10,zero_gamma,Zero Gamma,0DTE,Gamma flip point - Negative Gamma\n25640.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 6916 GEX\n25650.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 42747 GEX\n25630.0,9,high_vol_level,HVL #3,0DTE,High vol zone - 5403 GEX @ 0.1%\n25700.0,9,call_wall_0dte,Call Wall 0DTE #2,0DTE,0DTE call resistance - 1489 GEX\n25639.48,9,put_wall_volume,Put Wall (Vol),0DTE,Put wall from volume data\n25730.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 475 GEX\n25660.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 2445 GEX\n25620.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 2639 GEX\n25720.0,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 555 GEX\n25670.0,8,put_wall_oi,Put Wall (OI),0DTE,Put wall from open interest\n26160.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX\n25625.0,7,strike_put,Put Strike,0DTE,Put strike - 2193 GEX\n25675.0,7,strike_put,Put Strike,0DTE,Put strike - 1181 GEX\n25610.0,7,strike_put,Put Strike,0DTE,Put strike - 1157 GEX\n25590.0,7,strike_put,Put Strike,0DTE,Put strike - 844 GEX\n25580.0,7,strike_put,Put Strike,0DTE,Put strike - 706 GEX\n25570.0,7,strike_put,Put Strike,0DTE,Put strike - 351 GEX\n"
+string nq_csv_one = "strike,importance,type,label,dte,description\n25556.78,10,zero_gamma,Zero Gamma,0DTE,Gamma flip point - Negative Gamma\n25700.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 309 GEX\n25500.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 99 GEX\n25580.0,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 65 GEX\n25710.0,9,call_wall_0dte,Call Wall 0DTE #2,0DTE,0DTE call resistance - 254 GEX\n25560.0,8,put_wall_oi,Put Wall (OI),0DTE,Put wall from open interest\n25750.0,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 189 GEX\n25730.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 134 GEX\n25510.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 60 GEX\n25480.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 59 GEX\n26130.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX\n25680.0,7,strike_call,Call Strike,0DTE,Call strike - 117 GEX\n25660.0,7,strike_call,Call Strike,0DTE,Call strike - 102 GEX\n"
+string nq_csv_full = "strike,importance,type,label,dte,description\n25641.66,10,zero_gamma,Zero Gamma,0DTE,Gamma flip point - Negative Gamma\n25640.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 6888 GEX\n25650.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 42859 GEX\n25630.0,9,high_vol_level,HVL #3,0DTE,High vol zone - 5399 GEX @ 0.1%\n25700.0,9,call_wall_0dte,Call Wall 0DTE #2,0DTE,0DTE call resistance - 1948 GEX\n25639.48,9,put_wall_volume,Put Wall (Vol),0DTE,Put wall from volume data\n25720.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 636 GEX\n25660.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 2338 GEX\n25620.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 2662 GEX\n25250.0,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 972 GEX\n25670.0,8,put_wall_oi,Put Wall (OI),0DTE,Put wall from open interest\n26110.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX\n25625.0,7,strike_put,Put Strike,0DTE,Put strike - 2150 GEX\n25610.0,7,strike_put,Put Strike,0DTE,Put strike - 1200 GEX\n25675.0,7,strike_put,Put Strike,0DTE,Put strike - 1108 GEX\n25590.0,7,strike_put,Put Strike,0DTE,Put strike - 887 GEX\n25580.0,7,strike_put,Put Strike,0DTE,Put strike - 776 GEX\n25730.0,7,strike_call,Call Strike,0DTE,Call strike - 616 GEX\n"
 
 // ==================== METADATA ====================
-string es_meta_zero = "Timestamp:1766782800|Symbol:SPX|Spot:6929.83|FrontDTE:0|NextDTE:3|VolTrigger:6925.26|NetGEXVol:2085067.15|NetGEXOI:48450.36|CallResAll:2310164.38|PutSupAll:176656.84"
-string es_meta_one = "Timestamp:1766782800|Symbol:SPX|Spot:6929.83|FrontDTE:0|NextDTE:3|VolTrigger:6928.39|NetGEXVol:9572.89|NetGEXOI:12710.74|CallResAll:35530.52|PutSupAll:14007.11"
-string es_meta_full = "Timestamp:1766782800|Symbol:SPX|Spot:6929.83|FrontDTE:0|NextDTE:3|VolTrigger:6925.26|NetGEXVol:2103653.70|NetGEXOI:140241.29|CallResAll:2442940.18|PutSupAll:199045.23"
-string nq_meta_zero = "Timestamp:1766782800|Symbol:NDX|Spot:25647.21|FrontDTE:0|NextDTE:3|VolTrigger:25641.66|NetGEXVol:18227.77|NetGEXOI:2679.11|CallResAll:47933.90|PutSupAll:21948.32"
-string nq_meta_one = "Timestamp:1766782800|Symbol:NDX|Spot:25647.21|FrontDTE:0|NextDTE:3|VolTrigger:25556.78|NetGEXVol:638.47|NetGEXOI:349.53|CallResAll:1918.16|PutSupAll:907.05"
-string nq_meta_full = "Timestamp:1766782800|Symbol:NDX|Spot:25647.21|FrontDTE:0|NextDTE:3|VolTrigger:25641.66|NetGEXVol:19206.30|NetGEXOI:6137.19|CallResAll:51494.88|PutSupAll:22741.92"
-
+string es_meta_zero = "Timestamp:1766782800|Symbol:SPX|Spot:6929.83|FrontDTE:0|NextDTE:3|ZeroGamma:6925.26|NetGEXVol:2085067.15|NetGEXOI:48450.36|CallResAll:2310164.38|PutSupAll:176656.84"
+string es_meta_one = "Timestamp:1766782800|Symbol:SPX|Spot:6929.83|FrontDTE:0|NextDTE:3|ZeroGamma:6928.39|NetGEXVol:9572.89|NetGEXOI:12710.74|CallResAll:35530.52|PutSupAll:14007.11"
+string es_meta_full = "Timestamp:1766782800|Symbol:SPX|Spot:6929.83|FrontDTE:0|NextDTE:3|ZeroGamma:6925.26|NetGEXVol:2103653.70|NetGEXOI:140241.29|CallResAll:2442940.18|PutSupAll:199045.23"
+string nq_meta_zero = "Timestamp:1766782800|Symbol:NDX|Spot:25647.21|FrontDTE:0|NextDTE:3|ZeroGamma:25641.66|NetGEXVol:18227.77|NetGEXOI:2679.11|CallResAll:47933.90|PutSupAll:21948.32"
+string nq_meta_one = "Timestamp:1766782800|Symbol:NDX|Spot:25647.21|FrontDTE:0|NextDTE:3|ZeroGamma:25556.78|NetGEXVol:638.47|NetGEXOI:349.53|CallResAll:1918.16|PutSupAll:907.05"
+string nq_meta_full = "Timestamp:1766782800|Symbol:NDX|Spot:25647.21|FrontDTE:0|NextDTE:3|ZeroGamma:25641.66|NetGEXVol:19206.30|NetGEXOI:6137.19|CallResAll:51494.88|PutSupAll:22741.92"
 
 // ==================== AUTO-DETECTION TICKER ====================
 string detected_ticker = "ES"
@@ -27,15 +24,12 @@ if str.contains(syminfo.ticker, "NQ") or str.contains(syminfo.ticker, "NDX") or 
 else if str.contains(syminfo.ticker, "ES") or str.contains(syminfo.ticker, "SPX") or str.contains(syminfo.ticker, "SP500")
     detected_ticker := "ES"
 
-
 // ==================== MULTIPLICATEURS FIXES ====================
 float SPX_MULTIPLIER = 1.00685
 float NDX_MULTIPLIER = 1.00842
 
-
 float conversion_multiplier = 1.0
 bool needs_conversion = false
-
 
 if detected_ticker == "ES"
     if str.contains(syminfo.ticker, "ES") and not str.contains(syminfo.ticker, "SPX")
@@ -46,31 +40,27 @@ else if detected_ticker == "NQ"
         conversion_multiplier := NDX_MULTIPLIER
         needs_conversion := true
 
-
 // ==================== PARAMÈTRES ====================
 string selected_dte = input.string("0DTE", "📅 DTE Period", options=["0DTE", "1DTE", "FULL"], group="🎯 Settings", tooltip="Days To Expiration")
 
-
 // ==================== FILTRES PAR IMPORTANCE ====================
-bool show_imp_10 = input.bool(true, "Importance 10 (Major Walls/Volatility Trigger)", group="🎯 Importance Filters")
+bool show_imp_10 = input.bool(true, "Importance 10 (Zero Gamma, Major Walls)", group="🎯 Importance Filters")
 bool show_imp_9 = input.bool(true, "Importance 9 (High Vol Levels, 0DTE Walls)", group="🎯 Importance Filters")
 bool show_imp_8 = input.bool(true, "Importance 8 (Secondary Walls, Max Pain)", group="🎯 Importance Filters")
 bool show_imp_7 = input.bool(false, "Importance 7 (Individual Strikes, Vol Triggers)", group="🎯 Importance Filters")
 
-
 // ==================== FILTRES PAR TYPE ====================
-bool show_volatility_trigger = input.bool(true, "Volatility Trigger", group="📌 Level Types", tooltip="Zero gamma flip point")
+bool show_zero_gamma = input.bool(true, "Zero Gamma (Gamma Flip)", group="📌 Level Types", tooltip="Gamma flip point - volatility regime change")
 bool show_major_walls = input.bool(true, "Major Call/Put Walls", group="📌 Level Types", tooltip="Primary resistance and support")
 bool show_high_vol_levels = input.bool(true, "High Vol Levels (HVL)", group="📌 Level Types", tooltip="High volatility zones near spot")
 bool show_0dte_walls = input.bool(true, "0DTE Call/Put Walls", group="📌 Level Types", tooltip="Same-day expiry walls")
-bool show_secondary_walls = input.bool(true, "Secondary Walls", group="📌 Level Types", tooltip="Call resistance and put support #2-4")
+bool show_secondary_walls = input.bool(true, "Secondary Walls", group="📌 Level Types", tooltip="All other call/put walls")
 bool show_max_pain = input.bool(true, "Max Pain Level", group="📌 Level Types", tooltip="Expiration target strike")
 bool show_individual_strikes = input.bool(false, "Individual Strikes", group="📌 Level Types", tooltip="Top 15 strikes by GEX")
 bool show_vol_triggers = input.bool(false, "Vol Triggers (Timeframe)", group="📌 Level Types", tooltip="GEX change triggers by interval")
 
-
 // ==================== STYLE ====================
-color color_volatility_trigger = input.color(color.new(color.purple, 0), "Volatility Trigger", group="🎨 Colors", inline="c1")
+color color_zero_gamma = input.color(color.new(color.purple, 0), "Zero Gamma", group="🎨 Colors", inline="c1")
 color color_major_call_wall = input.color(color.new(color.red, 0), "Major Call Wall", group="🎨 Colors", inline="c2")
 color color_major_put_wall = input.color(color.new(color.green, 0), "Major Put Wall", group="🎨 Colors", inline="c3")
 color color_high_vol_level = input.color(color.new(color.orange, 0), "High Vol Level", group="🎨 Colors", inline="c4")
@@ -80,7 +70,6 @@ color color_max_pain = input.color(color.new(color.blue, 0), "Max Pain", group="
 color color_strikes = input.color(color.new(color.silver, 50), "Individual Strikes", group="🎨 Colors", inline="c8")
 color color_vol_trigger = input.color(color.new(color.fuchsia, 0), "Vol Triggers", group="🎨 Colors", inline="c9")
 
-
 // ==================== LABEL SETTINGS ====================
 bool show_labels = input.bool(true, "Show Labels", group="🏷️ Labels", tooltip="Display level labels on chart")
 bool show_descriptions = input.bool(false, "Show Descriptions", group="🏷️ Labels", tooltip="Add detailed descriptions to labels")
@@ -88,65 +77,66 @@ string label_size = input.string("Small", "Label Size", options=["Tiny", "Small"
 bool use_distance_filter = input.bool(false, "Filter Labels Near Price", group="🏷️ Labels", tooltip="Hide labels too close to current price")
 float label_min_distance_pct = input.float(0.3, "Min Distance from Price (%)", minval=0, maxval=5, step=0.1, group="🏷️ Labels")
 
-
 // ==================== METADATA DISPLAY ====================
-bool show_metadata = input.bool(false, "Show Market Info Table", group="📊 Metadata", tooltip="Display GEX metadata table (separate from chart)")
-
+bool show_metadata = input.bool(false, "Show Market Info Table", group="📊 Metadata", tooltip="Display GEX metadata table")
 
 // ==================== STOCKAGE ====================
 var array<line> all_lines = array.new<line>()
 var array<label> all_labels = array.new<label>()
 
-
 // ==================== FONCTIONS ====================
 get_label_size(string size) =>
     size == "Tiny" ? size.tiny : size == "Small" ? size.small : size == "Normal" ? size.normal : size.large
-
 
 should_show_level(int importance, string level_type) =>
     bool show_importance = (importance == 10 and show_imp_10) or (importance == 9 and show_imp_9) or (importance == 8 and show_imp_8) or (importance == 7 and show_imp_7)
     
     bool show_type = false
-    if str.contains(level_type, "volatility_trigger")
-        show_type := show_volatility_trigger
-    else if str.contains(level_type, "major_call_wall") or str.contains(level_type, "major_put_wall")
+    
+    // COMPARAISON EXACTE
+    if level_type == "zero_gamma"
+        show_type := show_zero_gamma
+    else if level_type == "major_call_wall" or level_type == "major_put_wall"
         show_type := show_major_walls
-    else if str.contains(level_type, "high_vol_level")
+    else if level_type == "high_vol_level"
         show_type := show_high_vol_levels
-    else if str.contains(level_type, "0dte")
+    else if level_type == "put_wall_0dte" or level_type == "call_wall_0dte"
         show_type := show_0dte_walls
-    else if str.contains(level_type, "call_resistance") or str.contains(level_type, "put_support") or str.contains(level_type, "call_wall") or str.contains(level_type, "put_wall")
+    else if level_type == "call_wall_volume" or level_type == "put_wall_volume" or level_type == "call_wall_oi" or level_type == "put_wall_oi" or level_type == "call_wall_secondary" or level_type == "put_wall_secondary"
         show_type := show_secondary_walls
-    else if str.contains(level_type, "max_pain")
+    else if level_type == "max_pain"
         show_type := show_max_pain
-    else if str.contains(level_type, "strike_")
+    else if level_type == "strike_call" or level_type == "strike_put"
         show_type := show_individual_strikes
-    else if str.contains(level_type, "vol_trigger")
+    else if level_type == "vol_trigger"
         show_type := show_vol_triggers
     
     show_importance and show_type
 
-
 get_level_color(string level_type) =>
     color result = color_strikes
-    if str.contains(level_type, "volatility_trigger")
-        result := color_volatility_trigger
-    else if str.contains(level_type, "major_call_wall")
+    
+    // COMPARAISON EXACTE
+    if level_type == "zero_gamma"
+        result := color_zero_gamma
+    else if level_type == "major_call_wall"
         result := color_major_call_wall
-    else if str.contains(level_type, "major_put_wall")
+    else if level_type == "major_put_wall"
         result := color_major_put_wall
-    else if str.contains(level_type, "high_vol_level")
+    else if level_type == "high_vol_level"
         result := color_high_vol_level
-    else if str.contains(level_type, "0dte")
+    else if level_type == "put_wall_0dte" or level_type == "call_wall_0dte"
         result := color_0dte_walls
-    else if str.contains(level_type, "call_resistance") or str.contains(level_type, "put_support") or str.contains(level_type, "call_wall") or str.contains(level_type, "put_wall")
+    else if level_type == "call_wall_volume" or level_type == "put_wall_volume" or level_type == "call_wall_oi" or level_type == "put_wall_oi" or level_type == "call_wall_secondary" or level_type == "put_wall_secondary"
         result := color_secondary_walls
-    else if str.contains(level_type, "max_pain")
+    else if level_type == "max_pain"
         result := color_max_pain
-    else if str.contains(level_type, "vol_trigger")
+    else if level_type == "strike_call" or level_type == "strike_put"
+        result := color_strikes
+    else if level_type == "vol_trigger"
         result := color_vol_trigger
+    
     result
-
 
 clear_all_objects() =>
     if array.size(all_lines) > 0
@@ -157,7 +147,6 @@ clear_all_objects() =>
         for i = 0 to array.size(all_labels) - 1
             label.delete(array.get(all_labels, i))
         array.clear(all_labels)
-
 
 process_csv(string csv_data) =>
     if bar_index == last_bar_index
@@ -196,13 +185,12 @@ process_csv(string csv_data) =>
                                             show_this_label := price_distance > min_distance
                                         
                                         if show_this_label
-                                            string final_label = label_text + " " + str.tostring(strike_price, "#.##")
+                                            string final_label = label_text
                                             if show_descriptions and str.length(description) > 0
                                                 final_label := final_label + "\n" + description
                                             
-                                            label new_label = label.new(x=bar_index, y=strike_price, text=final_label, color=color.new(color.white, 100), textcolor=level_color, style=label.style_none, size=get_label_size(label_size))
+                                            label new_label = label.new(x=bar_index, y=strike_price, text=final_label, color=color.new(color.white, 100), textcolor=level_color, style=label.style_label_left, size=get_label_size(label_size))
                                             array.push(all_labels, new_label)
-
 
 // ==================== EXÉCUTION ====================
 if barstate.islast
@@ -220,7 +208,6 @@ if barstate.islast
     
     process_csv(csv_active)
     
-    // Afficher la table de métadonnées (directement dans le bloc principal)
     if show_metadata and str.length(meta_active) > 0
         var table meta_tbl = table.new(position.top_right, 2, 11, bgcolor=color.new(color.gray, 85), border_width=1, border_color=color.new(color.white, 50))
         
@@ -239,6 +226,5 @@ if barstate.islast
                 table.cell(meta_tbl, 0, row, key, text_color=color.white, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
                 table.cell(meta_tbl, 1, row, val, text_color=color.yellow, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
                 row := row + 1
-
 
 plot(close, title="Price", display=display.none)
