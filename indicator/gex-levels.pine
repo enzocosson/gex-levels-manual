@@ -1,5 +1,6 @@
 //@version=6
-indicator("GEX Professional Levels - Auto", overlay=true, max_lines_count=500, max_labels_count=500)
+indicator("GEX Professional Levels", overlay=true, max_lines_count=500, max_labels_count=500)
+
 
 // ==================== CSV DATA (AUTO-GENERATED) ====================
 string es_csv_zero = "strike,importance,type,label,dte,description\n6925.26,10,volatility_trigger,Volatility Trigger,0DTE,Gamma flip point - Negative Gamma\n6925.0,10,major_put_wall,Major Put Wall,0DTE,Primary support - 69249 GEX\n6930.0,10,major_call_wall,Major Call Wall,0DTE,Primary resistance - 2056788 GEX\n6935.0,9,high_vol_level,High Vol Level #2,0DTE,HVL zone - 158857 GEX @ 0.1% from spot\n6920.0,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 69061 GEX\n6923.8,9,put_wall_volume,Put Wall (Volume),0DTE,Major put wall detected via volume\n6945.0,8,call_resistance,Call Resistance #4,0DTE,Secondary call wall - 14532 GEX\n6910.0,8,put_support,Put Support #4,0DTE,Secondary put wall - 8398 GEX\n6915.0,8,put_support,Put Support #3,0DTE,Secondary put wall - 17931 GEX\n6940.0,8,call_resistance,Call Resistance #3,0DTE,Secondary call wall - 49048 GEX\n6919.92,8,put_wall_oi,Put Wall (OI),0DTE,Major put wall detected via open interest\n7105.0,8,max_pain_level,Max Pain Level,0DTE,Expiration target - minimum GEX strike\n6950.0,7,strike_call,Call Strike,0DTE,Individual call resistance - 12154 GEX\n6955.0,7,strike_call,Call Strike,0DTE,Individual call resistance - 7671 GEX\n6960.0,7,strike_call,Call Strike,0DTE,Individual call resistance - 5304 GEX\n6905.0,7,strike_put,Put Strike,0DTE,Individual put support - 5259 GEX\n6965.0,7,strike_call,Call Strike,0DTE,Individual call resistance - 1633 GEX\n6900.0,7,strike_put,Put Strike,0DTE,Individual put support - 1439 GEX\n6970.0,7,strike_call,Call Strike,0DTE,Individual call resistance - 1393 GEX\n"
@@ -9,6 +10,7 @@ string nq_csv_zero = "strike,importance,type,label,dte,description\n25641.66,10,
 string nq_csv_one = "strike,importance,type,label,dte,description\n25556.78,10,volatility_trigger,Volatility Trigger,0DTE,Gamma flip point - Negative Gamma\n25700.0,10,major_call_wall,Major Call Wall,0DTE,Primary resistance - 309 GEX\n25500.0,10,major_put_wall,Major Put Wall,0DTE,Primary support - 99 GEX\n25580.0,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 65 GEX\n25710.0,9,call_wall_0dte,Call Wall 0DTE #2,0DTE,0DTE call resistance - 254 GEX\n25560.0,8,put_wall_oi,Put Wall (OI),0DTE,Major put wall detected via open interest\n25750.0,8,call_resistance,Call Resistance #3,0DTE,Secondary call wall - 189 GEX\n25730.0,8,call_resistance,Call Resistance #4,0DTE,Secondary call wall - 134 GEX\n25510.0,8,put_support,Put Support #3,0DTE,Secondary put wall - 60 GEX\n25480.0,8,put_support,Put Support #4,0DTE,Secondary put wall - 59 GEX\n26130.0,8,max_pain_level,Max Pain Level,0DTE,Expiration target - minimum GEX strike\n25680.0,7,strike_call,Call Strike,0DTE,Individual call resistance - 117 GEX\n25660.0,7,strike_call,Call Strike,0DTE,Individual call resistance - 102 GEX\n"
 string nq_csv_full = "strike,importance,type,label,dte,description\n25641.66,10,volatility_trigger,Volatility Trigger,0DTE,Gamma flip point - Negative Gamma\n25640.0,10,major_put_wall,Major Put Wall,0DTE,Primary support - 6888 GEX\n25650.0,10,major_call_wall,Major Call Wall,0DTE,Primary resistance - 42859 GEX\n25630.0,9,high_vol_level,High Vol Level #3,0DTE,HVL zone - 5399 GEX @ 0.1% from spot\n25700.0,9,call_wall_0dte,Call Wall 0DTE #2,0DTE,0DTE call resistance - 1948 GEX\n25639.48,9,put_wall_volume,Put Wall (Volume),0DTE,Major put wall detected via volume\n25720.0,8,call_resistance,Call Resistance #4,0DTE,Secondary call wall - 636 GEX\n25660.0,8,put_support,Put Support #4,0DTE,Secondary put wall - 2338 GEX\n25620.0,8,put_support,Put Support #3,0DTE,Secondary put wall - 2662 GEX\n25250.0,8,call_resistance,Call Resistance #3,0DTE,Secondary call wall - 972 GEX\n25670.0,8,put_wall_oi,Put Wall (OI),0DTE,Major put wall detected via open interest\n26110.0,8,max_pain_level,Max Pain Level,0DTE,Expiration target - minimum GEX strike\n25625.0,7,strike_put,Put Strike,0DTE,Individual put support - 2150 GEX\n25610.0,7,strike_put,Put Strike,0DTE,Individual put support - 1200 GEX\n25675.0,7,strike_put,Put Strike,0DTE,Individual put support - 1108 GEX\n25590.0,7,strike_put,Put Strike,0DTE,Individual put support - 887 GEX\n25580.0,7,strike_put,Put Strike,0DTE,Individual put support - 776 GEX\n25730.0,7,strike_call,Call Strike,0DTE,Individual call resistance - 616 GEX\n"
 
+
 // ==================== METADATA ====================
 string es_meta_zero = "Timestamp:1766782800|Symbol:SPX|Spot:6929.83|FrontDTE:0|NextDTE:3|VolTrigger:6925.26|NetGEXVol:2085067.15|NetGEXOI:48450.36|CallResAll:2310164.38|PutSupAll:176656.84"
 string es_meta_one = "Timestamp:1766782800|Symbol:SPX|Spot:6929.83|FrontDTE:0|NextDTE:3|VolTrigger:6928.39|NetGEXVol:9572.89|NetGEXOI:12710.74|CallResAll:35530.52|PutSupAll:14007.11"
@@ -17,6 +19,7 @@ string nq_meta_zero = "Timestamp:1766782800|Symbol:NDX|Spot:25647.21|FrontDTE:0|
 string nq_meta_one = "Timestamp:1766782800|Symbol:NDX|Spot:25647.21|FrontDTE:0|NextDTE:3|VolTrigger:25556.78|NetGEXVol:638.47|NetGEXOI:349.53|CallResAll:1918.16|PutSupAll:907.05"
 string nq_meta_full = "Timestamp:1766782800|Symbol:NDX|Spot:25647.21|FrontDTE:0|NextDTE:3|VolTrigger:25641.66|NetGEXVol:19206.30|NetGEXOI:6137.19|CallResAll:51494.88|PutSupAll:22741.92"
 
+
 // ==================== AUTO-DETECTION TICKER ====================
 string detected_ticker = "ES"
 if str.contains(syminfo.ticker, "NQ") or str.contains(syminfo.ticker, "NDX") or str.contains(syminfo.ticker, "NAS")
@@ -24,12 +27,15 @@ if str.contains(syminfo.ticker, "NQ") or str.contains(syminfo.ticker, "NDX") or 
 else if str.contains(syminfo.ticker, "ES") or str.contains(syminfo.ticker, "SPX") or str.contains(syminfo.ticker, "SP500")
     detected_ticker := "ES"
 
+
 // ==================== MULTIPLICATEURS FIXES ====================
 float SPX_MULTIPLIER = 1.00685
 float NDX_MULTIPLIER = 1.00842
 
+
 float conversion_multiplier = 1.0
 bool needs_conversion = false
+
 
 if detected_ticker == "ES"
     if str.contains(syminfo.ticker, "ES") and not str.contains(syminfo.ticker, "SPX")
@@ -40,14 +46,17 @@ else if detected_ticker == "NQ"
         conversion_multiplier := NDX_MULTIPLIER
         needs_conversion := true
 
+
 // ==================== PARAMÈTRES ====================
 string selected_dte = input.string("0DTE", "📅 DTE Period", options=["0DTE", "1DTE", "FULL"], group="🎯 Settings", tooltip="Days To Expiration")
+
 
 // ==================== FILTRES PAR IMPORTANCE ====================
 bool show_imp_10 = input.bool(true, "Importance 10 (Major Walls/Volatility Trigger)", group="🎯 Importance Filters")
 bool show_imp_9 = input.bool(true, "Importance 9 (High Vol Levels, 0DTE Walls)", group="🎯 Importance Filters")
 bool show_imp_8 = input.bool(true, "Importance 8 (Secondary Walls, Max Pain)", group="🎯 Importance Filters")
 bool show_imp_7 = input.bool(false, "Importance 7 (Individual Strikes, Vol Triggers)", group="🎯 Importance Filters")
+
 
 // ==================== FILTRES PAR TYPE ====================
 bool show_volatility_trigger = input.bool(true, "Volatility Trigger", group="📌 Level Types", tooltip="Zero gamma flip point")
@@ -58,6 +67,7 @@ bool show_secondary_walls = input.bool(true, "Secondary Walls", group="📌 Leve
 bool show_max_pain = input.bool(true, "Max Pain Level", group="📌 Level Types", tooltip="Expiration target strike")
 bool show_individual_strikes = input.bool(false, "Individual Strikes", group="📌 Level Types", tooltip="Top 15 strikes by GEX")
 bool show_vol_triggers = input.bool(false, "Vol Triggers (Timeframe)", group="📌 Level Types", tooltip="GEX change triggers by interval")
+
 
 // ==================== STYLE ====================
 color color_volatility_trigger = input.color(color.new(color.purple, 0), "Volatility Trigger", group="🎨 Colors", inline="c1")
@@ -70,6 +80,7 @@ color color_max_pain = input.color(color.new(color.blue, 0), "Max Pain", group="
 color color_strikes = input.color(color.new(color.silver, 50), "Individual Strikes", group="🎨 Colors", inline="c8")
 color color_vol_trigger = input.color(color.new(color.fuchsia, 0), "Vol Triggers", group="🎨 Colors", inline="c9")
 
+
 // ==================== LABEL SETTINGS ====================
 bool show_labels = input.bool(true, "Show Labels", group="🏷️ Labels", tooltip="Display level labels on chart")
 bool show_descriptions = input.bool(false, "Show Descriptions", group="🏷️ Labels", tooltip="Add detailed descriptions to labels")
@@ -77,18 +88,20 @@ string label_size = input.string("Small", "Label Size", options=["Tiny", "Small"
 bool use_distance_filter = input.bool(false, "Filter Labels Near Price", group="🏷️ Labels", tooltip="Hide labels too close to current price")
 float label_min_distance_pct = input.float(0.3, "Min Distance from Price (%)", minval=0, maxval=5, step=0.1, group="🏷️ Labels")
 
+
 // ==================== METADATA DISPLAY ====================
-bool show_metadata = input.bool(true, "Show Market Info", group="📊 Metadata", tooltip="Display GEX metadata on chart")
-string metadata_position = input.string("Top Right", "Info Position", options=["Top Right", "Top Left", "Bottom Right", "Bottom Left"], group="📊 Metadata")
+bool show_metadata = input.bool(false, "Show Market Info Table", group="📊 Metadata", tooltip="Display GEX metadata table (separate from chart)")
+
 
 // ==================== STOCKAGE ====================
 var array<line> all_lines = array.new<line>()
 var array<label> all_labels = array.new<label>()
-var label metadata_label = na
+
 
 // ==================== FONCTIONS ====================
 get_label_size(string size) =>
     size == "Tiny" ? size.tiny : size == "Small" ? size.small : size == "Normal" ? size.normal : size.large
+
 
 should_show_level(int importance, string level_type) =>
     bool show_importance = (importance == 10 and show_imp_10) or (importance == 9 and show_imp_9) or (importance == 8 and show_imp_8) or (importance == 7 and show_imp_7)
@@ -113,6 +126,7 @@ should_show_level(int importance, string level_type) =>
     
     show_importance and show_type
 
+
 get_level_color(string level_type) =>
     color result = color_strikes
     if str.contains(level_type, "volatility_trigger")
@@ -133,6 +147,7 @@ get_level_color(string level_type) =>
         result := color_vol_trigger
     result
 
+
 clear_all_objects() =>
     if array.size(all_lines) > 0
         for i = 0 to array.size(all_lines) - 1
@@ -143,22 +158,6 @@ clear_all_objects() =>
             label.delete(array.get(all_labels, i))
         array.clear(all_labels)
 
-// FONCTION CORRIGÉE: Retourne le label au lieu de modifier la globale
-create_metadata_label(string meta_str, string pos) =>
-    string meta_text = ""
-    if str.length(meta_str) > 0
-        parts = str.split(meta_str, "|")
-        for part in parts
-            kv = str.split(part, ":")
-            if array.size(kv) == 2
-                key = array.get(kv, 0)
-                val = array.get(kv, 1)
-                meta_text := meta_text + key + ": " + val + "\n"
-    
-    string label_style = pos == "Top Right" ? label.style_label_lower_left : pos == "Top Left" ? label.style_label_lower_right : pos == "Bottom Right" ? label.style_label_upper_left : label.style_label_upper_right
-    float price_pos = pos == "Top Right" or pos == "Top Left" ? high : low
-    
-    label.new(x=bar_index, y=price_pos, text=meta_text, color=color.new(color.gray, 90), textcolor=color.white, style=label_style, size=size.small)
 
 process_csv(string csv_data) =>
     if bar_index == last_bar_index
@@ -204,6 +203,7 @@ process_csv(string csv_data) =>
                                             label new_label = label.new(x=bar_index, y=strike_price, text=final_label, color=color.new(color.white, 100), textcolor=level_color, style=label.style_none, size=get_label_size(label_size))
                                             array.push(all_labels, new_label)
 
+
 // ==================== EXÉCUTION ====================
 if barstate.islast
     clear_all_objects()
@@ -220,10 +220,25 @@ if barstate.islast
     
     process_csv(csv_active)
     
-    // CORRECTION: Supprimer l'ancien label puis créer le nouveau
+    // Afficher la table de métadonnées (directement dans le bloc principal)
     if show_metadata and str.length(meta_active) > 0
-        if not na(metadata_label)
-            label.delete(metadata_label)
-        metadata_label := create_metadata_label(meta_active, metadata_position)
+        var table meta_tbl = table.new(position.top_right, 2, 11, bgcolor=color.new(color.gray, 85), border_width=1, border_color=color.new(color.white, 50))
+        
+        table.clear(meta_tbl, 0, 0, 1, 10)
+        
+        parts = str.split(meta_active, "|")
+        table.cell(meta_tbl, 0, 0, "GEX Metadata", text_color=color.white, text_size=size.small, bgcolor=color.new(color.blue, 70))
+        table.cell(meta_tbl, 1, 0, "", text_color=color.white, text_size=size.small, bgcolor=color.new(color.blue, 70))
+        
+        int row = 1
+        for part in parts
+            kv = str.split(part, ":")
+            if array.size(kv) == 2
+                key = array.get(kv, 0)
+                val = array.get(kv, 1)
+                table.cell(meta_tbl, 0, row, key, text_color=color.white, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+                table.cell(meta_tbl, 1, row, val, text_color=color.yellow, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+                row := row + 1
+
 
 plot(close, title="Price", display=display.none)
