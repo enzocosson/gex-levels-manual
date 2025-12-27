@@ -2,6 +2,7 @@
 indicator("GEX Professional Levels", overlay=true, max_lines_count=500, max_labels_count=500)
 
 
+
 // ==================== CSV DATA (AUTO-GENERATED) ====================
 string es_csv_zero = "strike,importance,type,label,dte,description\n6925.26,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Negative Gamma\n6925.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 69249 GEX\n6930.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 2056788 GEX\n6935.0,9,high_vol_level,HVL #2,0DTE,High vol zone - 158857 GEX @ 0.1%\n6920.0,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 69061 GEX\n6923.8,9,put_wall_volume,Put Wall (Vol),0DTE,Put wall from volume data\n6945.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 14532 GEX\n6910.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 8398 GEX\n6915.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 17931 GEX\n6940.0,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 49048 GEX\n6919.92,8,put_wall_oi,Put Wall (OI),0DTE,Put wall from open interest\n7105.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX\n6950.0,7,strike_call,Call Strike,0DTE,Call strike - 12154 GEX\n6955.0,7,strike_call,Call Strike,0DTE,Call strike - 7671 GEX\n6960.0,7,strike_call,Call Strike,0DTE,Call strike - 5304 GEX\n6905.0,7,strike_put,Put Strike,0DTE,Put strike - 5259 GEX\n6965.0,7,strike_call,Call Strike,0DTE,Call strike - 1633 GEX\n6900.0,7,strike_put,Put Strike,0DTE,Put strike - 1439 GEX\n6970.0,7,strike_call,Call Strike,0DTE,Call strike - 1393 GEX\n"
 string es_csv_one = "strike,importance,type,label,dte,description\n6928.39,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Negative Gamma\n6900.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 2546 GEX\n6950.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 7470 GEX\n6955.0,9,high_vol_level,HVL #2,0DTE,High vol zone - 5038 GEX @ 0.4%\n6940.0,9,high_vol_level,HVL #3,0DTE,High vol zone - 3632 GEX @ 0.1%\n6920.0,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 1618 GEX\n6945.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 3558 GEX\n6895.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 1164 GEX\n6910.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 1262 GEX\n6880.0,8,put_wall_oi,Put Wall (OI),0DTE,Put wall from open interest\n6930.0,8,call_wall_oi,Call Wall (OI),0DTE,Call wall from open interest\n7140.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX\n6960.0,7,strike_call,Call Strike,0DTE,Call strike - 3431 GEX\n6970.0,7,strike_call,Call Strike,0DTE,Call strike - 2426 GEX\n6965.0,7,strike_call,Call Strike,0DTE,Call strike - 2002 GEX\n6935.0,7,strike_call,Call Strike,0DTE,Call strike - 1957 GEX\n6975.0,7,strike_call,Call Strike,0DTE,Call strike - 1441 GEX\n6885.0,7,strike_put,Put Strike,0DTE,Put strike - 972 GEX\n"
@@ -9,6 +10,7 @@ string es_csv_full = "strike,importance,type,label,dte,description\n6925.26,10,z
 string nq_csv_zero = "strike,importance,type,label,dte,description\n25641.66,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Negative Gamma\n25640.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 6916 GEX\n25650.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 42747 GEX\n25630.0,9,high_vol_level,HVL #3,0DTE,High vol zone - 5403 GEX @ 0.1%\n25700.0,9,call_wall_0dte,Call Wall 0DTE #2,0DTE,0DTE call resistance - 1489 GEX\n25639.48,9,put_wall_volume,Put Wall (Vol),0DTE,Put wall from volume data\n25730.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 475 GEX\n25660.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 2445 GEX\n25620.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 2639 GEX\n25720.0,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 555 GEX\n25670.0,8,put_wall_oi,Put Wall (OI),0DTE,Put wall from open interest\n26160.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX\n25625.0,7,strike_put,Put Strike,0DTE,Put strike - 2193 GEX\n25675.0,7,strike_put,Put Strike,0DTE,Put strike - 1181 GEX\n25610.0,7,strike_put,Put Strike,0DTE,Put strike - 1157 GEX\n25590.0,7,strike_put,Put Strike,0DTE,Put strike - 844 GEX\n25580.0,7,strike_put,Put Strike,0DTE,Put strike - 706 GEX\n25570.0,7,strike_put,Put Strike,0DTE,Put strike - 351 GEX\n"
 string nq_csv_one = "strike,importance,type,label,dte,description\n25556.78,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Negative Gamma\n25700.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 309 GEX\n25500.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 99 GEX\n25580.0,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 65 GEX\n25710.0,9,call_wall_0dte,Call Wall 0DTE #2,0DTE,0DTE call resistance - 254 GEX\n25560.0,8,put_wall_oi,Put Wall (OI),0DTE,Put wall from open interest\n25750.0,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 189 GEX\n25730.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 134 GEX\n25510.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 60 GEX\n25480.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 59 GEX\n26130.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX\n25680.0,7,strike_call,Call Strike,0DTE,Call strike - 117 GEX\n25660.0,7,strike_call,Call Strike,0DTE,Call strike - 102 GEX\n"
 string nq_csv_full = "strike,importance,type,label,dte,description\n25641.66,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Negative Gamma\n25640.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 6888 GEX\n25650.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 42859 GEX\n25630.0,9,high_vol_level,HVL #3,0DTE,High vol zone - 5399 GEX @ 0.1%\n25700.0,9,call_wall_0dte,Call Wall 0DTE #2,0DTE,0DTE call resistance - 1948 GEX\n25639.48,9,put_wall_volume,Put Wall (Vol),0DTE,Put wall from volume data\n25720.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 636 GEX\n25660.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 2338 GEX\n25620.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 2662 GEX\n25250.0,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 972 GEX\n25670.0,8,put_wall_oi,Put Wall (OI),0DTE,Put wall from open interest\n26110.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX\n25625.0,7,strike_put,Put Strike,0DTE,Put strike - 2150 GEX\n25610.0,7,strike_put,Put Strike,0DTE,Put strike - 1200 GEX\n25675.0,7,strike_put,Put Strike,0DTE,Put strike - 1108 GEX\n25590.0,7,strike_put,Put Strike,0DTE,Put strike - 887 GEX\n25580.0,7,strike_put,Put Strike,0DTE,Put strike - 776 GEX\n25730.0,7,strike_call,Call Strike,0DTE,Call strike - 616 GEX\n"
+
 
 
 // ==================== METADATA ====================
@@ -20,6 +22,7 @@ string nq_meta_one = "Timestamp:1766782800|Symbol:NDX|Spot:25647.21|FrontDTE:0|N
 string nq_meta_full = "Timestamp:1766782800|Symbol:NDX|Spot:25647.21|FrontDTE:0|NextDTE:3|VolTrigger:25641.66|NetGEXVol:19206.30|NetGEXOI:6137.19|CallResAll:51494.88|PutSupAll:22741.92"
 
 
+
 // ==================== AUTO-DETECTION TICKER ====================
 string detected_ticker = "ES"
 if str.contains(syminfo.ticker, "NQ") or str.contains(syminfo.ticker, "NDX") or str.contains(syminfo.ticker, "NAS")
@@ -28,13 +31,16 @@ else if str.contains(syminfo.ticker, "ES") or str.contains(syminfo.ticker, "SPX"
     detected_ticker := "ES"
 
 
+
 // ==================== MULTIPLICATEURS FIXES ====================
 float SPX_MULTIPLIER = 1.00685
 float NDX_MULTIPLIER = 1.00842
 
 
+
 float conversion_multiplier = 1.0
 bool needs_conversion = false
+
 
 
 if detected_ticker == "ES"
@@ -47,8 +53,10 @@ else if detected_ticker == "NQ"
         needs_conversion := true
 
 
+
 // ==================== PARAMÈTRES ====================
 string selected_dte = input.string("0DTE", "📅 DTE Period", options=["0DTE", "1DTE", "FULL"], group="🎯 Settings", tooltip="Days To Expiration")
+
 
 
 // ==================== FILTRES PAR IMPORTANCE ====================
@@ -56,6 +64,7 @@ bool show_imp_10 = input.bool(true, "Importance 10 (Major Walls/Volatility Trigg
 bool show_imp_9 = input.bool(true, "Importance 9 (High Vol Levels, 0DTE Walls)", group="🎯 Importance Filters")
 bool show_imp_8 = input.bool(true, "Importance 8 (Secondary Walls, Max Pain)", group="🎯 Importance Filters")
 bool show_imp_7 = input.bool(false, "Importance 7 (Individual Strikes, Vol Triggers)", group="🎯 Importance Filters")
+
 
 
 // ==================== FILTRES PAR TYPE ====================
@@ -67,6 +76,7 @@ bool show_secondary_walls = input.bool(true, "Secondary Walls", group="📌 Leve
 bool show_max_pain = input.bool(true, "Max Pain Level", group="📌 Level Types", tooltip="Expiration target strike")
 bool show_individual_strikes = input.bool(false, "Individual Strikes", group="📌 Level Types", tooltip="Top 15 strikes by GEX")
 bool show_vol_triggers = input.bool(false, "Vol Triggers (Timeframe)", group="📌 Level Types", tooltip="GEX change triggers by interval")
+
 
 
 // ==================== STYLE ====================
@@ -81,6 +91,7 @@ color color_strikes = input.color(color.new(color.silver, 50), "Individual Strik
 color color_vol_trigger = input.color(color.new(color.fuchsia, 0), "Vol Triggers", group="🎨 Colors", inline="c9")
 
 
+
 // ==================== LABEL SETTINGS ====================
 bool show_labels = input.bool(true, "Show Labels", group="🏷️ Labels", tooltip="Display level labels on chart")
 bool show_descriptions = input.bool(false, "Show Descriptions", group="🏷️ Labels", tooltip="Add detailed descriptions to labels")
@@ -89,8 +100,15 @@ bool use_distance_filter = input.bool(false, "Filter Labels Near Price", group="
 float label_min_distance_pct = input.float(0.3, "Min Distance from Price (%)", minval=0, maxval=5, step=0.1, group="🏷️ Labels")
 
 
+
 // ==================== METADATA DISPLAY ====================
 bool show_metadata = input.bool(false, "Show Market Info Table", group="📊 Metadata", tooltip="Display GEX metadata table (separate from chart)")
+
+
+
+// ==================== DEFINITIONS TABLE ====================
+bool show_definitions = input.bool(false, "Afficher les Définitions", group="📖 Aide", tooltip="Tableau des définitions des termes GEX")
+
 
 
 // ==================== STOCKAGE ====================
@@ -98,9 +116,11 @@ var array<line> all_lines = array.new<line>()
 var array<label> all_labels = array.new<label>()
 
 
+
 // ==================== FONCTIONS ====================
 get_label_size(string size) =>
     size == "Tiny" ? size.tiny : size == "Small" ? size.small : size == "Normal" ? size.normal : size.large
+
 
 
 should_show_level(int importance, string level_type) =>
@@ -127,6 +147,7 @@ should_show_level(int importance, string level_type) =>
     show_importance and show_type
 
 
+
 get_level_color(string level_type) =>
     color result = color_strikes
     if str.contains(level_type, "volatility_trigger")
@@ -148,6 +169,7 @@ get_level_color(string level_type) =>
     result
 
 
+
 clear_all_objects() =>
     if array.size(all_lines) > 0
         for i = 0 to array.size(all_lines) - 1
@@ -157,6 +179,7 @@ clear_all_objects() =>
         for i = 0 to array.size(all_labels) - 1
             label.delete(array.get(all_labels, i))
         array.clear(all_labels)
+
 
 
 process_csv(string csv_data) =>
@@ -204,6 +227,7 @@ process_csv(string csv_data) =>
                                             array.push(all_labels, new_label)
 
 
+
 // ==================== EXÉCUTION ====================
 if barstate.islast
     clear_all_objects()
@@ -220,7 +244,7 @@ if barstate.islast
     
     process_csv(csv_active)
     
-    // Afficher la table de métadonnées (directement dans le bloc principal)
+    // Afficher la table de métadonnées
     if show_metadata and str.length(meta_active) > 0
         var table meta_tbl = table.new(position.top_right, 2, 11, bgcolor=color.new(color.gray, 85), border_width=1, border_color=color.new(color.white, 50))
         
@@ -239,6 +263,57 @@ if barstate.islast
                 table.cell(meta_tbl, 0, row, key, text_color=color.white, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
                 table.cell(meta_tbl, 1, row, val, text_color=color.yellow, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
                 row := row + 1
+    
+    // Afficher le tableau des définitions
+    if show_definitions
+        var table def_tbl = table.new(position.bottom_left, 2, 11, bgcolor=color.new(color.gray, 85), border_width=1, border_color=color.new(color.white, 50))
+        
+        table.clear(def_tbl, 0, 0, 1, 10)
+        
+        // En-tête
+        table.cell(def_tbl, 0, 0, "📖 TERMES GEX", text_color=color.white, text_size=size.small, bgcolor=color.new(color.purple, 70))
+        table.cell(def_tbl, 1, 0, "DÉFINITION", text_color=color.white, text_size=size.small, bgcolor=color.new(color.purple, 70))
+        
+        // GEX
+        table.cell(def_tbl, 0, 1, "GEX", text_color=color.white, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 1, "Gamma Exposure - Volume de couverture nécessaire aux market makers pour un mouvement de 1%", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        // Zero Gamma / Volatility Trigger
+        table.cell(def_tbl, 0, 2, "Zero Gamma", text_color=color.purple, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 2, "Point de bascule où le gamma net = 0. Au-dessus: volatilité amplifiée. En dessous: volatilité supprimée", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        // Major Call Wall
+        table.cell(def_tbl, 0, 3, "Major Call Wall", text_color=color.red, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 3, "Résistance primaire - Strike call avec le plus fort GEX. Les MM vendent en approchant ce niveau", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        // Major Put Wall
+        table.cell(def_tbl, 0, 4, "Major Put Wall", text_color=color.green, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 4, "Support primaire - Strike put avec le plus fort GEX. Les MM achètent en approchant ce niveau", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        // HVL
+        table.cell(def_tbl, 0, 5, "HVL", text_color=color.orange, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 5, "High Vol Level - Zone de fort GEX proche du spot (<1.5%). Intensifie les mouvements de prix", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        // 0DTE Walls
+        table.cell(def_tbl, 0, 6, "0DTE Walls", text_color=color.yellow, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 6, "Murs d'expiration jour même - Support/résistance actifs uniquement le jour d'expiration", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        // Max Pain
+        table.cell(def_tbl, 0, 7, "Max Pain", text_color=color.blue, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 7, "Strike où le GEX total est minimal - Cible d'expiration théorique où les options perdent le plus", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        // Vol Trigger
+        table.cell(def_tbl, 0, 8, "Vol Trigger", text_color=color.fuchsia, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 8, "Strike avec variation GEX significative sur intervalle temporel - Signal de changement de flux", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        // DTE
+        table.cell(def_tbl, 0, 9, "DTE", text_color=color.white, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 9, "Days To Expiration - Jours avant expiration des options (0DTE = jour même, 1DTE = lendemain)", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        // Positive/Negative Gamma
+        table.cell(def_tbl, 0, 10, "Gamma Regime", text_color=color.white, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 10, "Pos: MM stabilisent (achètent bas/vendent haut). Neg: MM amplifient (achètent haut/vendent bas)", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+
 
 
 plot(close, title="Price", display=display.none)
