@@ -1,5 +1,5 @@
 strike,importance,type,label,dte,description
-6928.39,10,zero_gamma,Zero Gamma,0DTE,Gamma flip point - Negative Gamma
+6928.39,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Negative Gamma
 6900.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 2546 GEX
 6950.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 7470 GEX
 6955.0,9,high_vol_level,HVL #2,0DTE,High vol zone - 5038 GEX @ 0.4%
