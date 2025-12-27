@@ -11,11 +11,13 @@ import os
 from config import *
 
 
+
 # ==================== CONFIGURATION ====================
 TICKERS = {
     'SPX': {'target': 'ES', 'description': 'SPX GEX for ES Futures', 'multiplier': 1.00685},
     'NDX': {'target': 'NQ', 'description': 'NDX GEX for NQ Futures', 'multiplier': 1.00842}
 }
+
 
 DTE_PERIODS = {'zero': 'ZERO', 'one': 'ONE', 'full': 'FULL'}
 
@@ -134,7 +136,7 @@ def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_la
     
     levels = []
     
-    # IMPORTANCE 10 - Zero Gamma (Gamma Flip Point)
+    # IMPORTANCE 10 - Volatility Trigger (Zero Gamma)
     if volatility_trigger and volatility_trigger != 0:
         regime = "Negative Gamma" if spot_price > volatility_trigger else "Positive Gamma"
         levels.append({
@@ -143,10 +145,10 @@ def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_la
             'type': 'zero_gamma', 
             'label': 'Zero Gamma', 
             'dte': dte_display, 
-            'description': f"Gamma flip point - {regime}"
+            'description': f"Vol trigger - {regime}"
         })
     
-    # IMPORTANCE 10 - Major Walls
+    # IMPORTANCE 10 - Major Walls (les vrais majors)
     if advanced['top_call_wall']:
         cw = advanced['top_call_wall']
         levels.append({
@@ -180,7 +182,7 @@ def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_la
             'description': f"High vol zone - {hvl['abs_gex']:.0f} GEX @ {hvl['distance_pct']:.1f}%"
         })
     
-    # IMPORTANCE 9 - 0DTE Walls
+    # IMPORTANCE 9 - 0DTE Walls (sans "Major")
     if is_zero_dte:
         put_0dte = [p for p in advanced['all_put_walls'][:3] if p['strike'] < spot_price]
         for idx, ps in enumerate(put_0dte[:2]):
@@ -204,7 +206,7 @@ def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_la
                 'description': f"0DTE call resistance - {cr['abs_gex']:.0f} GEX"
             })
     
-    # IMPORTANCE 9/8 - Walls from API
+    # IMPORTANCE 9/8 - Walls from API (sans "Major")
     if call_wall_volume and call_wall_volume != 0:
         levels.append({
             'strike': round(call_wall_volume, 2), 
@@ -291,7 +293,7 @@ def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_la
             'description': f"{strike_desc} - {s['total_gex']:.0f} GEX"
         })
     
-    # IMPORTANCE 7-9 - Vol Triggers (GEX change over time)
+    # IMPORTANCE 7-9 - Vol Triggers
     if vol_triggers_timeframe and isinstance(vol_triggers_timeframe, list):
         intervals = ['1min', '5min', '10min', '15min', '30min', '1h']
         for idx, strike_array in enumerate(vol_triggers_timeframe[:6]):
@@ -313,7 +315,7 @@ def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_la
                         'type': 'vol_trigger', 
                         'label': label, 
                         'dte': dte_display, 
-                        'description': f"GEX change {gex_change:+.0f} over {interval_name}"
+                        'description': f"Vol trigger - GEX Δ {gex_change:+.0f} ({interval_name})"
                     })
     
     # IMPORTANCE 8 - Max Pain
@@ -362,6 +364,7 @@ def generate_levels(source_ticker, chain_data, majors_data, dte_api_name, dte_la
     return None, None
 
 
+
 def csv_to_pinescript_string(csv_content):
     """Convertit le contenu CSV en string échappé pour Pine Script"""
     escaped = csv_content.replace('"', '\\"').replace('\n', '\\n')
@@ -375,7 +378,7 @@ def metadata_to_pinescript_string(metadata_dict):
     meta_str += f"Spot:{metadata_dict.get('spot_price', 0):.2f}|"
     meta_str += f"FrontDTE:{metadata_dict.get('front_expiry_dte', 0)}|"
     meta_str += f"NextDTE:{metadata_dict.get('next_expiry_dte', 0)}|"
-    meta_str += f"ZeroGamma:{metadata_dict.get('volatility_trigger', 0):.2f}|"
+    meta_str += f"VolTrigger:{metadata_dict.get('volatility_trigger', 0):.2f}|"
     meta_str += f"NetGEXVol:{metadata_dict.get('net_gex_volume', 0):.2f}|"
     meta_str += f"NetGEXOI:{metadata_dict.get('net_gex_oi', 0):.2f}|"
     meta_str += f"CallResAll:{metadata_dict.get('call_res_all', 0):.2f}|"
@@ -406,6 +409,7 @@ def generate_pinescript_indicator(csv_data_dict, metadata_dict):
     pine_script = f'''//@version=6
 indicator("GEX Professional Levels", overlay=true, max_lines_count=500, max_labels_count=500)
 
+
 // ==================== CSV DATA (AUTO-GENERATED) ====================
 string es_csv_zero = "{es_zero_str}"
 string es_csv_one = "{es_one_str}"
@@ -413,6 +417,7 @@ string es_csv_full = "{es_full_str}"
 string nq_csv_zero = "{nq_zero_str}"
 string nq_csv_one = "{nq_one_str}"
 string nq_csv_full = "{nq_full_str}"
+
 
 // ==================== METADATA ====================
 string es_meta_zero = "{es_zero_meta}"
@@ -422,6 +427,7 @@ string nq_meta_zero = "{nq_zero_meta}"
 string nq_meta_one = "{nq_one_meta}"
 string nq_meta_full = "{nq_full_meta}"
 
+
 // ==================== AUTO-DETECTION TICKER ====================
 string detected_ticker = "ES"
 if str.contains(syminfo.ticker, "NQ") or str.contains(syminfo.ticker, "NDX") or str.contains(syminfo.ticker, "NAS")
@@ -429,12 +435,15 @@ if str.contains(syminfo.ticker, "NQ") or str.contains(syminfo.ticker, "NDX") or 
 else if str.contains(syminfo.ticker, "ES") or str.contains(syminfo.ticker, "SPX") or str.contains(syminfo.ticker, "SP500")
     detected_ticker := "ES"
 
+
 // ==================== MULTIPLICATEURS FIXES ====================
 float SPX_MULTIPLIER = {spx_multiplier}
 float NDX_MULTIPLIER = {ndx_multiplier}
 
+
 float conversion_multiplier = 1.0
 bool needs_conversion = false
+
 
 if detected_ticker == "ES"
     if str.contains(syminfo.ticker, "ES") and not str.contains(syminfo.ticker, "SPX")
@@ -445,27 +454,31 @@ else if detected_ticker == "NQ"
         conversion_multiplier := NDX_MULTIPLIER
         needs_conversion := true
 
+
 // ==================== PARAMÈTRES ====================
 string selected_dte = input.string("0DTE", "📅 DTE Period", options=["0DTE", "1DTE", "FULL"], group="🎯 Settings", tooltip="Days To Expiration")
 
+
 // ==================== FILTRES PAR IMPORTANCE ====================
-bool show_imp_10 = input.bool(true, "Importance 10 (Zero Gamma, Major Walls)", group="🎯 Importance Filters")
+bool show_imp_10 = input.bool(true, "Importance 10 (Major Walls/Volatility Trigger)", group="🎯 Importance Filters")
 bool show_imp_9 = input.bool(true, "Importance 9 (High Vol Levels, 0DTE Walls)", group="🎯 Importance Filters")
 bool show_imp_8 = input.bool(true, "Importance 8 (Secondary Walls, Max Pain)", group="🎯 Importance Filters")
 bool show_imp_7 = input.bool(false, "Importance 7 (Individual Strikes, Vol Triggers)", group="🎯 Importance Filters")
 
+
 // ==================== FILTRES PAR TYPE ====================
-bool show_zero_gamma = input.bool(true, "Zero Gamma (Gamma Flip)", group="📌 Level Types", tooltip="Gamma flip point - volatility regime change")
+bool show_volatility_trigger = input.bool(true, "Volatility Trigger", group="📌 Level Types", tooltip="Zero gamma flip point")
 bool show_major_walls = input.bool(true, "Major Call/Put Walls", group="📌 Level Types", tooltip="Primary resistance and support")
 bool show_high_vol_levels = input.bool(true, "High Vol Levels (HVL)", group="📌 Level Types", tooltip="High volatility zones near spot")
 bool show_0dte_walls = input.bool(true, "0DTE Call/Put Walls", group="📌 Level Types", tooltip="Same-day expiry walls")
-bool show_secondary_walls = input.bool(true, "Secondary Walls", group="📌 Level Types", tooltip="All other call/put walls")
+bool show_secondary_walls = input.bool(true, "Secondary Walls", group="📌 Level Types", tooltip="Call resistance and put support #2-4")
 bool show_max_pain = input.bool(true, "Max Pain Level", group="📌 Level Types", tooltip="Expiration target strike")
 bool show_individual_strikes = input.bool(false, "Individual Strikes", group="📌 Level Types", tooltip="Top 15 strikes by GEX")
 bool show_vol_triggers = input.bool(false, "Vol Triggers (Timeframe)", group="📌 Level Types", tooltip="GEX change triggers by interval")
 
+
 // ==================== STYLE ====================
-color color_zero_gamma = input.color(color.new(color.purple, 0), "Zero Gamma", group="🎨 Colors", inline="c1")
+color color_volatility_trigger = input.color(color.new(color.purple, 0), "Volatility Trigger", group="🎨 Colors", inline="c1")
 color color_major_call_wall = input.color(color.new(color.red, 0), "Major Call Wall", group="🎨 Colors", inline="c2")
 color color_major_put_wall = input.color(color.new(color.green, 0), "Major Put Wall", group="🎨 Colors", inline="c3")
 color color_high_vol_level = input.color(color.new(color.orange, 0), "High Vol Level", group="🎨 Colors", inline="c4")
@@ -475,6 +488,7 @@ color color_max_pain = input.color(color.new(color.blue, 0), "Max Pain", group="
 color color_strikes = input.color(color.new(color.silver, 50), "Individual Strikes", group="🎨 Colors", inline="c8")
 color color_vol_trigger = input.color(color.new(color.fuchsia, 0), "Vol Triggers", group="🎨 Colors", inline="c9")
 
+
 // ==================== LABEL SETTINGS ====================
 bool show_labels = input.bool(true, "Show Labels", group="🏷️ Labels", tooltip="Display level labels on chart")
 bool show_descriptions = input.bool(false, "Show Descriptions", group="🏷️ Labels", tooltip="Add detailed descriptions to labels")
@@ -482,66 +496,65 @@ string label_size = input.string("Small", "Label Size", options=["Tiny", "Small"
 bool use_distance_filter = input.bool(false, "Filter Labels Near Price", group="🏷️ Labels", tooltip="Hide labels too close to current price")
 float label_min_distance_pct = input.float(0.3, "Min Distance from Price (%)", minval=0, maxval=5, step=0.1, group="🏷️ Labels")
 
+
 // ==================== METADATA DISPLAY ====================
-bool show_metadata = input.bool(false, "Show Market Info Table", group="📊 Metadata", tooltip="Display GEX metadata table")
+bool show_metadata = input.bool(false, "Show Market Info Table", group="📊 Metadata", tooltip="Display GEX metadata table (separate from chart)")
+
 
 // ==================== STOCKAGE ====================
 var array<line> all_lines = array.new<line>()
 var array<label> all_labels = array.new<label>()
 
+
 // ==================== FONCTIONS ====================
 get_label_size(string size) =>
     size == "Tiny" ? size.tiny : size == "Small" ? size.small : size == "Normal" ? size.normal : size.large
+
 
 should_show_level(int importance, string level_type) =>
     bool show_importance = (importance == 10 and show_imp_10) or (importance == 9 and show_imp_9) or (importance == 8 and show_imp_8) or (importance == 7 and show_imp_7)
     
     bool show_type = false
-    
-    // COMPARAISON EXACTE
-    if level_type == "zero_gamma"
-        show_type := show_zero_gamma
-    else if level_type == "major_call_wall" or level_type == "major_put_wall"
+    if str.contains(level_type, "volatility_trigger")
+        show_type := show_volatility_trigger
+    else if str.contains(level_type, "major_call_wall") or str.contains(level_type, "major_put_wall")
         show_type := show_major_walls
-    else if level_type == "high_vol_level"
+    else if str.contains(level_type, "high_vol_level")
         show_type := show_high_vol_levels
-    else if level_type == "put_wall_0dte" or level_type == "call_wall_0dte"
+    else if str.contains(level_type, "0dte")
         show_type := show_0dte_walls
-    else if level_type == "call_wall_volume" or level_type == "put_wall_volume" or level_type == "call_wall_oi" or level_type == "put_wall_oi" or level_type == "call_wall_secondary" or level_type == "put_wall_secondary"
+    else if str.contains(level_type, "call_resistance") or str.contains(level_type, "put_support") or str.contains(level_type, "call_wall") or str.contains(level_type, "put_wall")
         show_type := show_secondary_walls
-    else if level_type == "max_pain"
+    else if str.contains(level_type, "max_pain")
         show_type := show_max_pain
-    else if level_type == "strike_call" or level_type == "strike_put"
+    else if str.contains(level_type, "strike_")
         show_type := show_individual_strikes
-    else if level_type == "vol_trigger"
+    else if str.contains(level_type, "vol_trigger")
         show_type := show_vol_triggers
     
     show_importance and show_type
 
+
 get_level_color(string level_type) =>
     color result = color_strikes
-    
-    // COMPARAISON EXACTE
-    if level_type == "zero_gamma"
-        result := color_zero_gamma
-    else if level_type == "major_call_wall"
+    if str.contains(level_type, "volatility_trigger")
+        result := color_volatility_trigger
+    else if str.contains(level_type, "major_call_wall")
         result := color_major_call_wall
-    else if level_type == "major_put_wall"
+    else if str.contains(level_type, "major_put_wall")
         result := color_major_put_wall
-    else if level_type == "high_vol_level"
+    else if str.contains(level_type, "high_vol_level")
         result := color_high_vol_level
-    else if level_type == "put_wall_0dte" or level_type == "call_wall_0dte"
+    else if str.contains(level_type, "0dte")
         result := color_0dte_walls
-    else if level_type == "call_wall_volume" or level_type == "put_wall_volume" or level_type == "call_wall_oi" or level_type == "put_wall_oi" or level_type == "call_wall_secondary" or level_type == "put_wall_secondary"
+    else if str.contains(level_type, "call_resistance") or str.contains(level_type, "put_support") or str.contains(level_type, "call_wall") or str.contains(level_type, "put_wall")
         result := color_secondary_walls
-    else if level_type == "max_pain"
+    else if str.contains(level_type, "max_pain")
         result := color_max_pain
-    else if level_type == "strike_call" or level_type == "strike_put"
-        result := color_strikes
-    else if level_type == "vol_trigger"
+    else if str.contains(level_type, "vol_trigger")
         result := color_vol_trigger
-    
     result
+
 
 clear_all_objects() =>
     if array.size(all_lines) > 0
@@ -552,6 +565,7 @@ clear_all_objects() =>
         for i = 0 to array.size(all_labels) - 1
             label.delete(array.get(all_labels, i))
         array.clear(all_labels)
+
 
 process_csv(string csv_data) =>
     if bar_index == last_bar_index
@@ -590,12 +604,13 @@ process_csv(string csv_data) =>
                                             show_this_label := price_distance > min_distance
                                         
                                         if show_this_label
-                                            string final_label = label_text
+                                            string final_label = label_text + " " + str.tostring(strike_price, "#.##")
                                             if show_descriptions and str.length(description) > 0
                                                 final_label := final_label + "\\n" + description
                                             
-                                            label new_label = label.new(x=bar_index, y=strike_price, text=final_label, color=color.new(color.white, 100), textcolor=level_color, style=label.style_label_left, size=get_label_size(label_size))
+                                            label new_label = label.new(x=bar_index, y=strike_price, text=final_label, color=color.new(color.white, 100), textcolor=level_color, style=label.style_none, size=get_label_size(label_size))
                                             array.push(all_labels, new_label)
+
 
 // ==================== EXÉCUTION ====================
 if barstate.islast
@@ -613,6 +628,7 @@ if barstate.islast
     
     process_csv(csv_active)
     
+    // Afficher la table de métadonnées (directement dans le bloc principal)
     if show_metadata and str.length(meta_active) > 0
         var table meta_tbl = table.new(position.top_right, 2, 11, bgcolor=color.new(color.gray, 85), border_width=1, border_color=color.new(color.white, 50))
         
@@ -632,10 +648,12 @@ if barstate.islast
                 table.cell(meta_tbl, 1, row, val, text_color=color.yellow, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
                 row := row + 1
 
+
 plot(close, title="Price", display=display.none)
 '''
     
     return pine_script
+
 
 
 def main():
