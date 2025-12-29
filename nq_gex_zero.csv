@@ -1,19 +1,23 @@
 strike,importance,type,label,dte,description
-25482.4,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Negative Gamma
-25450.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 1818 GEX
-25550.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 1051 GEX
-25400.0,9,high_vol_level,HVL #2,0DTE,High vol zone - 1118 GEX @ 0.4%
-25600.0,9,call_wall_0dte,Call Wall 0DTE #2,0DTE,0DTE call resistance - 895 GEX
-25610.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 727 GEX
-25410.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 976 GEX
-25420.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 974 GEX
-25570.0,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 860 GEX
-25700.0,8,call_wall_oi,Call Wall (OI),0DTE,Call wall from open interest
-25920.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX
-25430.0,7,strike_put,Put Strike,0DTE,Put strike - 772 GEX
-25500.0,7,strike_put,Put Strike,0DTE,Put strike - 703 GEX
-25350.0,7,strike_put,Put Strike,0DTE,Put strike - 633 GEX
-25560.0,7,strike_call,Call Strike,0DTE,Call strike - 624 GEX
-25440.0,7,strike_put,Put Strike,0DTE,Put strike - 510 GEX
-25460.0,7,strike_put,Put Strike,0DTE,Put strike - 501 GEX
-25470.0,7,strike_put,Put Strike,0DTE,Put strike - 485 GEX
+25530,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Positive Gamma
+25450,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 2362 GEX
+25550,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 606 GEX
+25400,9,high_vol_level,HVL #2,0DTE,High vol zone - 2128 GEX @ 0.2%
+25410,9,high_vol_level,HVL #3,0DTE,High vol zone - 1749 GEX @ 0.1%
+25600,9,call_wall_0dte,Call Wall 0DTE #2,0DTE,0DTE call resistance - 538 GEX
+25700,8,call_wall_oi,Call Wall (OI),0DTE,Call wall from open interest
+25570,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 438 GEX
+25610,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 429 GEX
+25420,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 1485 GEX
+25370,7,strike_put,Put Strike,0DTE,Put strike - 708 GEX
+25330,7,strike_put,Put Strike,0DTE,Put strike - 628 GEX
+25460,7,strike_put,Put Strike,0DTE,Put strike - 671 GEX
+25360,7,strike_put,Put Strike,0DTE,Put strike - 686 GEX
+25290,7,strike_put,Put Strike,0DTE,Put strike - 689 GEX
+25430,7,strike_put,Put Strike,0DTE,Put strike - 1144 GEX
+25390,7,strike_put,Put Strike,0DTE,Put strike - 751 GEX
+25440,7,strike_put,Put Strike,0DTE,Put strike - 797 GEX
+25380,7,strike_put,Put Strike,0DTE,Put strike - 841 GEX
+25300,7,strike_put,Put Strike,0DTE,Put strike - 911 GEX
+25350,7,strike_put,Put Strike,0DTE,Put strike - 1244 GEX
+25500,7,vol_trigger,Vol Trigger (1min),0DTE,Vol trigger - GEX Δ -141 (1min)
