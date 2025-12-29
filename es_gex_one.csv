@@ -1,19 +1,18 @@
 strike,importance,type,label,dte,description
-6904.17,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Negative Gamma
-6900.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 1144 GEX
-6925.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 1555 GEX
-6950.0,9,high_vol_level,HVL #3,0DTE,High vol zone - 1092 GEX @ 0.6%
-6870.0,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 534 GEX
-6930.0,9,call_wall_volume,Call Wall (Vol),0DTE,Call wall from volume data
-6855.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 289 GEX
-6850.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 268 GEX
-6960.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 829 GEX
-6945.0,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 851 GEX
+6906.2,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Positive Gamma
+6925.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 2125 GEX
+6900.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 1361 GEX
+6950.0,9,high_vol_level,HVL #3,0DTE,High vol zone - 1300 GEX @ 0.6%
+6870.0,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 681 GEX
+6945.0,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 1089 GEX
+6960.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 936 GEX
+6850.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 399 GEX
+6855.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 308 GEX
 7130.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX
-6910.0,7,strike_call,Call Strike,0DTE,Call strike - 499 GEX
-6955.0,7,strike_call,Call Strike,0DTE,Call strike - 493 GEX
-6965.0,7,strike_call,Call Strike,0DTE,Call strike - 488 GEX
-6935.0,7,strike_call,Call Strike,0DTE,Call strike - 393 GEX
-6940.0,7,strike_call,Call Strike,0DTE,Call strike - 290 GEX
-6890.0,7,strike_put,Put Strike,0DTE,Put strike - 175 GEX
-6875.0,7,strike_put,Put Strike,0DTE,Put strike - 166 GEX
+6910.0,7,strike_call,Call Strike,0DTE,Call strike - 718 GEX
+6935.0,7,strike_call,Call Strike,0DTE,Call strike - 621 GEX
+6955.0,7,strike_call,Call Strike,0DTE,Call strike - 622 GEX
+6965.0,7,strike_call,Call Strike,0DTE,Call strike - 514 GEX
+6915.0,7,strike_call,Call Strike,0DTE,Call strike - 485 GEX
+7000.0,7,strike_call,Call Strike,0DTE,Call strike - 469 GEX
+6940.0,7,strike_call,Call Strike,0DTE,Call strike - 461 GEX
