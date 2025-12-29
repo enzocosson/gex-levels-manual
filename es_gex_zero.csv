@@ -1,18 +1,18 @@
 strike,importance,type,label,dte,description
-6905.83,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Positive Gamma
-6900.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 26698 GEX
-6920.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 19101 GEX
-6890.0,9,high_vol_level,HVL #2,0DTE,High vol zone - 23117 GEX @ 0.1%
-6880.0,9,high_vol_level,HVL #3,0DTE,High vol zone - 20505 GEX @ 0.3%
-6915.0,9,call_wall_0dte,Call Wall 0DTE #2,0DTE,0DTE call resistance - 14444 GEX
-6925.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 9760 GEX
-6885.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 17541 GEX
-6910.0,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 11601 GEX
+6904.49,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Positive Gamma
+6900.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 32811 GEX
+6920.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 24877 GEX
+6890.0,9,high_vol_level,HVL #2,0DTE,High vol zone - 32421 GEX @ 0.2%
+6910.0,9,call_wall_0dte,Call Wall 0DTE #2,0DTE,0DTE call resistance - 23229 GEX
+6895.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 24489 GEX
+6880.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 23991 GEX
+6925.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 12363 GEX
+6915.0,8,call_wall_oi,Call Wall (OI),0DTE,Call wall from open interest
 7140.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX
-6895.0,7,strike_put,Put Strike,0DTE,Put strike - 16436 GEX
-6875.0,7,strike_put,Put Strike,0DTE,Put strike - 11009 GEX
-6930.0,7,strike_call,Call Strike,0DTE,Call strike - 9051 GEX
-6870.0,7,strike_put,Put Strike,0DTE,Put strike - 7739 GEX
-6935.0,7,strike_call,Call Strike,0DTE,Call strike - 5168 GEX
-6865.0,7,strike_put,Put Strike,0DTE,Put strike - 3136 GEX
-6940.0,7,strike_call,Call Strike,0DTE,Call strike - 2793 GEX
+6885.0,7,strike_put,Put Strike,0DTE,Put strike - 23459 GEX
+6875.0,7,strike_put,Put Strike,0DTE,Put strike - 12048 GEX
+6930.0,7,strike_call,Call Strike,0DTE,Call strike - 8418 GEX
+6870.0,7,strike_put,Put Strike,0DTE,Put strike - 7880 GEX
+6935.0,7,strike_call,Call Strike,0DTE,Call strike - 5632 GEX
+6940.0,7,strike_call,Call Strike,0DTE,Call strike - 3336 GEX
+6865.0,7,strike_put,Put Strike,0DTE,Put strike - 3143 GEX

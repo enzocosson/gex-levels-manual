@@ -1,19 +1,19 @@
 strike,importance,type,label,dte,description
-6905.83,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Positive Gamma
-6900.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 1489 GEX
-6925.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 2057 GEX
-6950.0,9,high_vol_level,HVL #3,0DTE,High vol zone - 1250 GEX @ 0.7%
-6870.0,9,put_wall_0dte,Put Wall 0DTE #1,0DTE,0DTE put support - 791 GEX
-6850.0,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 610 GEX
-6855.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 407 GEX
+6904.92,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Positive Gamma
+6925.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 2394 GEX
+6900.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 1602 GEX
+6945.0,9,high_vol_level,HVL #3,0DTE,High vol zone - 1600 GEX @ 0.6%
+6870.0,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 828 GEX
+6930.0,9,call_wall_volume,Call Wall (Vol),0DTE,Call wall from volume data
+6898.8,9,put_wall_volume,Put Wall (Vol),0DTE,Put wall from volume data
+6880.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 549 GEX
+6895.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 560 GEX
+6910.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 1025 GEX
+6950.0,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 1354 GEX
 7130.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX
-6910.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 902 GEX
-6945.0,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 935 GEX
-6935.0,7,strike_call,Call Strike,0DTE,Call strike - 585 GEX
-6915.0,7,strike_call,Call Strike,0DTE,Call strike - 504 GEX
-6955.0,7,strike_call,Call Strike,0DTE,Call strike - 464 GEX
-6965.0,7,strike_call,Call Strike,0DTE,Call strike - 443 GEX
-6940.0,7,strike_call,Call Strike,0DTE,Call strike - 423 GEX
-6880.0,7,strike_put,Put Strike,0DTE,Put strike - 385 GEX
-6895.0,7,vol_trigger,Vol Trigger (10min),0DTE,Vol trigger - GEX Δ -80 (10min)
-6960.0,7,strike_call,Call Strike,0DTE,Call strike - 746 GEX
+6935.0,7,strike_call,Call Strike,0DTE,Call strike - 873 GEX
+6960.0,7,strike_call,Call Strike,0DTE,Call strike - 827 GEX
+6955.0,7,strike_call,Call Strike,0DTE,Call strike - 700 GEX
+6915.0,7,strike_call,Call Strike,0DTE,Call strike - 660 GEX
+6940.0,7,strike_call,Call Strike,0DTE,Call strike - 578 GEX
+6890.0,7,strike_put,Put Strike,0DTE,Put strike - 532 GEX
