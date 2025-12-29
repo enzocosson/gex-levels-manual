@@ -1,13 +1,13 @@
 strike,importance,type,label,dte,description
-25536.78,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Positive Gamma
-25600.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 50 GEX
-25490.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 50 GEX
-25380.0,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 36 GEX
+25508.34,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Positive Gamma
+25600.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 68 GEX
+25400.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 43 GEX
+25480.0,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 39 GEX
 25610.0,9,call_wall_0dte,Call Wall 0DTE #2,0DTE,0DTE call resistance - 40 GEX
 25800.0,8,call_wall_oi,Call Wall (OI),0DTE,Call wall from open interest
 25590.0,8,put_wall_oi,Put Wall (OI),0DTE,Put wall from open interest
 25570.0,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 36 GEX
-25700.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 32 GEX
-25480.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 36 GEX
-25400.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 35 GEX
+25450.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 36 GEX
+25380.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 36 GEX
 25020.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX
+25490.0,7,vol_trigger,Vol Trigger (1h),0DTE,Vol trigger - GEX Δ +82 (1h)
