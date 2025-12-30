@@ -7,43 +7,9 @@ export default async function handler(req, res) {
 
   if (req.method === "OPTIONS") return res.status(200).end();
 
-  try {
-    const base = req.url || "";
-    const host = req.headers.host || "localhost";
-    const u = new URL(base, `https://${host}`);
-    // extract path after /api/gexbot/
-    const apiPath = u.pathname.replace(/^\/api\/gexbot\/?/, "");
-
-    if (!apiPath) return res.status(400).json({ error: "Missing path" });
-
-    const qs = u.searchParams.toString();
-    const target = `https://api.gexbot.com/${apiPath}${qs ? `?${qs}` : ""}`;
-
-    console.log("🔄 Proxying to:", target.replace(/key=[^&]+/, "key=***"));
-
-    const r = await fetch(target, {
-      method: "GET",
-      headers: { Accept: "application/json", "User-Agent": "GEX-Levels/1.0" },
-    });
-    const text = await r.text();
-    const ct = r.headers.get("content-type") || "";
-
-    if (!r.ok) {
-      try {
-        return res.status(r.status).json(JSON.parse(text));
-      } catch {
-        return res.status(r.status).send(text);
-      }
-    }
-
-    if (ct.includes("application/json"))
-      return res.status(200).json(JSON.parse(text));
-    res.setHeader("Content-Type", ct || "text/plain");
-    return res.status(200).send(text);
-  } catch (err) {
-    console.error("❌ Proxy error:", err);
-    return res
-      .status(500)
-      .json({ error: "Proxy failed", message: err.message });
-  }
+  return res.status(410).json({
+    error: "NOT_AVAILABLE_HERE",
+    message:
+      "This API file exists at repository root but the Vercel project is probably configured to use the 'frontend' folder as root.\nIf you want API functions here, change the Project Root in Vercel to '/'. Otherwise, use the functions in '/frontend/api/'.",
+  });
 }
