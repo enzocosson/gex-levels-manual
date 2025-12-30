@@ -1,6 +1,6 @@
-// api/gexbot.js
+// api/gexbot/[...path].js
 export default async function handler(req, res) {
-  // CORS headers
+  // CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -10,38 +10,42 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Extraire le path depuis l'URL
-    // Ex: /api/gexbot/SPX/classic/zero?key=xxx
-    const urlPath = req.url.replace("/api/gexbot/", "");
+    // Récupérer le path depuis les query params
+    const { path } = req.query;
 
-    // Séparer le path et la query string
-    const [path, queryString] = urlPath.split("?");
-
-    if (!path) {
-      return res.status(400).json({ error: "Missing API path" });
+    if (!path || path.length === 0) {
+      return res.status(400).json({ error: "Missing path" });
     }
 
-    // Construire l'URL complète vers l'API GexBot
-    const apiUrl = `https://api.gexbot.com/${path}${
-      queryString ? "?" + queryString : ""
-    }`;
+    // Joindre le path
+    const apiPath = Array.isArray(path) ? path.join("/") : path;
 
-    console.log("🔄 Proxying:", apiUrl.replace(/key=[^&]+/, "key=***"));
+    // Récupérer la query string
+    const queryParams = new URLSearchParams();
+    Object.keys(req.query).forEach((key) => {
+      if (key !== "path") {
+        queryParams.append(key, req.query[key]);
+      }
+    });
+
+    const apiUrl = `https://api.gexbot.com/${apiPath}?${queryParams.toString()}`;
+
+    console.log("🔄 Proxying to:", apiUrl.replace(/key=[^&]+/, "key=***"));
 
     const response = await fetch(apiUrl, {
       method: "GET",
       headers: {
         Accept: "application/json",
-        "User-Agent": "GEX-Levels-App/1.0",
+        "User-Agent": "GEX-Levels/1.0",
       },
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`❌ API Error ${response.status}:`, errorText);
+      const text = await response.text();
+      console.error(`❌ API Error ${response.status}:`, text);
       return res.status(response.status).json({
         error: `API returned ${response.status}`,
-        details: errorText,
+        details: text,
       });
     }
 
@@ -50,8 +54,9 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error("❌ Proxy error:", error);
     return res.status(500).json({
-      error: "Internal proxy error",
+      error: "Proxy failed",
       message: error.message,
+      stack: error.stack,
     });
   }
 }
