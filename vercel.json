@@ -1,0 +1,16 @@
+{
+  "framework": null,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs20.x"
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/gexbot/(.*)",
+      "dest": "/api/gexbot.js"
+    }
+  ]
+}
