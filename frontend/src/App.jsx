@@ -45,7 +45,7 @@ function App() {
   const fetchGexData = async (ticker, aggregation) => {
     const url = `${BASE_URL}/${ticker}/classic/${aggregation}?key=${GEXBOT_API_KEY}`;
 
-    console.log(`📡 Calling API: ${url.replace(GEXBOT_API_KEY, "***")}`); // Debug
+    console.log(`📡 Calling API: ${url.replace(GEXBOT_API_KEY, "***")}`);
 
     try {
       const controller = new AbortController();
@@ -763,12 +763,13 @@ plot(close, title="Price", display=display.none)`;
           for (const [dteKey, dteApiName] of Object.entries(DTE_PERIODS)) {
             console.log(`📡 Fetching ${sourceTicker}/${dteApiName}...`);
 
+            // UTILISE sourceTicker (SPX/NDX) au lieu de target (es/nq)
             const chainData = await fetchGexData(
-              sourceTicker,
+              sourceTicker, // ← CHANGEMENT ICI : "SPX" ou "NDX"
               dteApiName.toLowerCase()
             );
             const majorsData = await fetchGexMajors(
-              sourceTicker,
+              sourceTicker, // ← ET ICI AUSSI
               dteApiName.toLowerCase()
             );
 
