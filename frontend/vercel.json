@@ -1,7 +1,9 @@
 {
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/api/gexbot/:path*",
+      "source": "/api/gexbot/(.*)",
       "destination": "/api/gexbot"
     }
   ]
