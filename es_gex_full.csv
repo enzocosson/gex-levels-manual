@@ -1,20 +1,19 @@
 strike,importance,type,label,dte,description
-6896.2,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Negative Gamma
-6905.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 3511943 GEX
-6890.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 15135 GEX
-6910.0,9,high_vol_level,HVL #2,0DTE,High vol zone - 237524 GEX @ 0.1%
-6900.0,9,high_vol_level,HVL #3,0DTE,High vol zone - 107305 GEX @ 0.1%
-6895.0,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 14836 GEX
-6892.5,9,put_wall_volume,Put Wall (Vol),0DTE,Put wall from volume data
-6880.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 11066 GEX
-6885.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 12967 GEX
-6920.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 36509 GEX
-6700.0,8,put_wall_oi,Put Wall (OI),0DTE,Put wall from open interest
-7145.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX
-6915.0,7,strike_call,Call Strike,0DTE,Call strike - 24729 GEX
-6925.0,7,strike_call,Call Strike,0DTE,Call strike - 17220 GEX
-6950.0,7,strike_call,Call Strike,0DTE,Call strike - 13418 GEX
-7000.0,7,strike_call,Call Strike,0DTE,Call strike - 11245 GEX
-6930.0,7,strike_call,Call Strike,0DTE,Call strike - 8292 GEX
-6935.0,7,strike_call,Call Strike,0DTE,Call strike - 8066 GEX
-6875.0,7,strike_put,Put Strike,0DTE,Put strike - 7163 GEX
+7000,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 9073 GEX
+6875,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 1775 GEX
+6950,9,high_vol_level,HVL #2,0DTE,High vol zone - 8592 GEX @ 0.6%
+6925,9,high_vol_level,HVL #3,0DTE,High vol zone - 5493 GEX @ 0.3%
+6825,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 1769 GEX
+6835,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 1549 GEX
+7145,8,max_pain,Max Pain,0DTE,Expiration target - min GEX
+6700,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 1680 GEX
+6975,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 3654 GEX
+7050,7,strike_call,Call Strike,0DTE,Call strike - 3110 GEX
+6940,7,strike_call,Call Strike,0DTE,Call strike - 2709 GEX
+6970,7,strike_call,Call Strike,0DTE,Call strike - 2535 GEX
+6960,7,strike_call,Call Strike,0DTE,Call strike - 2170 GEX
+6945,7,strike_call,Call Strike,0DTE,Call strike - 2130 GEX
+6955,7,strike_call,Call Strike,0DTE,Call strike - 2107 GEX
+6935,7,strike_call,Call Strike,0DTE,Call strike - 2096 GEX
+6980,7,strike_call,Call Strike,0DTE,Call strike - 2058 GEX
+7100,7,strike_call,Call Strike,0DTE,Call strike - 3033 GEX

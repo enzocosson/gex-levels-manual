@@ -1,20 +1,17 @@
 strike,importance,type,label,dte,description
-6895.83,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Negative Gamma
-6905.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 3511562 GEX
-6895.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 12925 GEX
-6910.0,9,high_vol_level,HVL #2,0DTE,High vol zone - 233974 GEX @ 0.1%
-6900.0,9,high_vol_level,HVL #3,0DTE,High vol zone - 108484 GEX @ 0.1%
-6890.0,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 12293 GEX
-6893.39,9,put_wall_volume,Put Wall (Vol),0DTE,Put wall from volume data
-6880.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 8499 GEX
-6885.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 11476 GEX
-6920.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 33653 GEX
-6910.08,8,put_wall_oi,Put Wall (OI),0DTE,Put wall from open interest
-7140.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX
-6915.0,7,strike_call,Call Strike,0DTE,Call strike - 22198 GEX
-6925.0,7,strike_call,Call Strike,0DTE,Call strike - 6261 GEX
-6875.0,7,strike_put,Put Strike,0DTE,Put strike - 4280 GEX
-6935.0,7,strike_call,Call Strike,0DTE,Call strike - 4166 GEX
-6930.0,7,strike_call,Call Strike,0DTE,Call strike - 2823 GEX
-6870.0,7,strike_put,Put Strike,0DTE,Put strike - 2662 GEX
-6940.0,7,strike_call,Call Strike,0DTE,Call strike - 1827 GEX
+6925,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 2308 GEX
+6900,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 2011 GEX
+6950,9,high_vol_level,HVL #3,0DTE,High vol zone - 1876 GEX @ 0.6%
+6890,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 858 GEX
+6945,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 1494 GEX
+6940,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 1376 GEX
+6920,8,put_wall_secondary,Put Wall #2,0DTE,Secondary put support - 1050 GEX
+6870,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 792 GEX
+7130,8,max_pain,Max Pain,0DTE,Expiration target - min GEX
+6935,7,strike_call,Call Strike,0DTE,Call strike - 1349 GEX
+6960,7,strike_call,Call Strike,0DTE,Call strike - 905 GEX
+6880,7,strike_put,Put Strike,0DTE,Put strike - 596 GEX
+6955,7,strike_call,Call Strike,0DTE,Call strike - 487 GEX
+6850,7,strike_put,Put Strike,0DTE,Put strike - 478 GEX
+6855,7,strike_put,Put Strike,0DTE,Put strike - 458 GEX
+6905,7,strike_put,Put Strike,0DTE,Put strike - 441 GEX
