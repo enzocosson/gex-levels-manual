@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/gexbot/:path*",
+      "destination": "/api/gexbot"
+    }
+  ]
+}

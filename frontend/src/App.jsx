@@ -4,7 +4,12 @@ import "./App.css";
 // Configuration API GexBot
 const GEXBOT_API_KEY =
   import.meta.env.VITE_GEXBOT_API_KEY || "YOUR_API_KEY_HERE";
-const BASE_URL = "/api/gexbot";
+
+// Détection automatique de l'environnement
+const BASE_URL = import.meta.env.DEV
+  ? "/api/gexbot" // En dev local avec Vite proxy
+  : "/api/gexbot"; // En production sur Vercel avec serverless function
+
 const API_TIMEOUT = 10000;
 
 // Configuration des tickers
