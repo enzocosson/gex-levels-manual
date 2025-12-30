@@ -1,4 +1,10 @@
 {
+  "rewrites": [
+    {
+      "source": "/api/gexbot/:path*",
+      "destination": "https://api.gexbot.com/:path*"
+    }
+  ],
   "routes": [
     { "handle": "filesystem" },
     { "src": "/api/(.*)", "dest": "/api/$1" },
