@@ -1,55 +1,827 @@
-import { useRef, useState, useMemo } from "react";
+import { useRef, useState, useEffect } from "react";
 import "./App.css";
-import pineCode from "../../indicator/gex-levels.pine?raw";
-import lastUpdateRaw from "../../last_update.txt?raw";
 
-// Import CSV files as raw text
-import esGexZeroRaw from "../../es_gex_zero.csv?raw";
-import esGexOneRaw from "../../es_gex_one.csv?raw";
-import esGexFullRaw from "../../es_gex_full.csv?raw";
-import nqGexZeroRaw from "../../nq_gex_zero.csv?raw";
-import nqGexOneRaw from "../../nq_gex_one.csv?raw";
-import nqGexFullRaw from "../../nq_gex_full.csv?raw";
+// Configuration API GexBot
+const GEXBOT_API_KEY =
+  import.meta.env.VITE_GEXBOT_API_KEY || "YOUR_API_KEY_HERE";
+const BASE_URL = "/api/gexbot";
+const API_TIMEOUT = 10000;
 
-// Parse CSV helper function
-const parseCSV = (csvText) => {
-  if (!csvText) return [];
-  const lines = csvText.trim().split("\n");
-  if (lines.length === 0) return [];
-
-  const headers = lines[0].split(",");
-
-  return lines.slice(1).map((line) => {
-    const values = line.split(",");
-    const obj = {};
-    headers.forEach((header, idx) => {
-      obj[header.trim()] = values[idx]?.trim() || "";
-    });
-    return obj;
-  });
+// Configuration des tickers
+const TICKERS = {
+  SPX: {
+    target: "ES",
+    description: "SPX GEX for ES Futures",
+    multiplier: 1.00685,
+  },
+  NDX: {
+    target: "NQ",
+    description: "NDX GEX for NQ Futures",
+    multiplier: 1.00842,
+  },
 };
+
+const DTE_PERIODS = { zero: "ZERO", one: "ONE", full: "FULL" };
 
 function App() {
   const [copied, setCopied] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [gexData, setGexData] = useState({
+    es: { zero: [], one: [], full: [] },
+    nq: { zero: [], one: [], full: [] },
+  });
+  const [pineCode, setPineCode] = useState("");
+  const [lastUpdate, setLastUpdate] = useState("");
   const featuresRef = useRef(null);
 
-  // Parse CSV data using useMemo (computed once, no side effects)
-  const gexData = useMemo(
-    () => ({
-      es: {
-        zero: parseCSV(esGexZeroRaw),
-        one: parseCSV(esGexOneRaw),
-        full: parseCSV(esGexFullRaw),
-      },
-      nq: {
-        zero: parseCSV(nqGexZeroRaw),
-        one: parseCSV(nqGexOneRaw),
-        full: parseCSV(nqGexFullRaw),
-      },
-    }),
-    []
-  ); // Empty deps = computed once on mount
+  // Fetch GEX data from API
+  const fetchGexData = async (ticker, aggregation) => {
+    const url = `${BASE_URL}/${ticker}/classic/${aggregation}?key=${GEXBOT_API_KEY}`;
+
+    console.log(`📡 Calling API: ${url.replace(GEXBOT_API_KEY, "***")}`); // Debug
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+
+      const response = await fetch(url, {
+        method: "GET",
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log(
+        `✅ ${ticker}/${aggregation} - ${data.strikes?.length || 0} strikes`
+      );
+      return data;
+    } catch (e) {
+      if (e.name === "AbortError") {
+        console.error(`⏱️ Timeout fetching ${ticker}/${aggregation}`);
+      } else {
+        console.error(`❌ Error fetching ${ticker}/${aggregation}:`, e);
+      }
+      return null;
+    }
+  };
+
+  // Fetch majors data
+  const fetchGexMajors = async (ticker, aggregation) => {
+    const url = `${BASE_URL}/${ticker}/classic/${aggregation}/majors?key=${GEXBOT_API_KEY}`;
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+
+      const response = await fetch(url, {
+        method: "GET",
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) return null;
+      return await response.json();
+    } catch {
+      return null;
+    }
+  };
+
+  // Calculate advanced levels
+  const calculateAdvancedLevels = (strikes, spot) => {
+    let callResistanceTotal = 0;
+    let putSupportTotal = 0;
+    const callWalls = [];
+    const putWalls = [];
+    const hvlCandidates = [];
+
+    strikes.forEach((strikeArray) => {
+      if (Array.isArray(strikeArray) && strikeArray.length >= 3) {
+        const strikePrice = strikeArray[0];
+        const gexVol = strikeArray[1];
+        const gexOi = strikeArray[2];
+        const totalGex = gexVol + gexOi;
+        const absTotalGex = Math.abs(totalGex);
+
+        if (strikePrice > spot && totalGex > 0) {
+          callResistanceTotal += totalGex;
+        } else if (strikePrice < spot && totalGex < 0) {
+          putSupportTotal += Math.abs(totalGex);
+        }
+
+        if (totalGex > 0) {
+          callWalls.push({
+            strike: strikePrice,
+            gex: totalGex,
+            abs_gex: absTotalGex,
+          });
+        } else if (totalGex < 0) {
+          putWalls.push({
+            strike: strikePrice,
+            gex: totalGex,
+            abs_gex: absTotalGex,
+          });
+        }
+
+        const distancePct =
+          spot > 0 ? Math.abs(((strikePrice - spot) / spot) * 100) : 0;
+        if (distancePct < 1.5 && absTotalGex > 500) {
+          hvlCandidates.push({
+            strike: strikePrice,
+            abs_gex: absTotalGex,
+            distance_pct: distancePct,
+          });
+        }
+      }
+    });
+
+    callWalls.sort((a, b) => b.abs_gex - a.abs_gex);
+    putWalls.sort((a, b) => b.abs_gex - a.abs_gex);
+    hvlCandidates.sort((a, b) => b.abs_gex - a.abs_gex);
+
+    return {
+      call_res_all: callResistanceTotal,
+      put_sup_all: putSupportTotal,
+      top_call_wall: callWalls[0] || null,
+      top_put_wall: putWalls[0] || null,
+      all_call_walls: callWalls.slice(0, 5),
+      all_put_walls: putWalls.slice(0, 5),
+      hvl_levels: hvlCandidates.slice(0, 3),
+    };
+  };
+
+  // Generate levels from chain data
+  const generateLevels = (sourceTicker, chainData, majorsData) => {
+    if (!chainData || !chainData.strikes) return { levels: [], metadata: {} };
+
+    const spotPrice = chainData.spot || 0;
+    const frontExpiryDte = chainData.min_dte || 0;
+    const nextExpiryDte = chainData.sec_min_dte || 0;
+    const volatilityTrigger = chainData.zero_gamma || 0;
+    const strikeGexCurve = chainData.strikes || [];
+
+    const isZeroDte = frontExpiryDte === 0;
+    const dteDisplay = isZeroDte ? "0DTE" : `${frontExpiryDte}DTE`;
+
+    const advanced = calculateAdvancedLevels(strikeGexCurve, spotPrice);
+
+    const levels = [];
+
+    // IMPORTANCE 10 - Volatility Trigger
+    if (volatilityTrigger && volatilityTrigger !== 0) {
+      const regime =
+        spotPrice > volatilityTrigger ? "Negative Gamma" : "Positive Gamma";
+      levels.push({
+        strike: Math.round(volatilityTrigger * 100) / 100,
+        importance: 10,
+        type: "zero_gamma",
+        label: "Zero Gamma",
+        dte: dteDisplay,
+        description: `Vol trigger - ${regime}`,
+      });
+    }
+
+    // IMPORTANCE 10 - Major Walls
+    if (advanced.top_call_wall) {
+      levels.push({
+        strike: Math.round(advanced.top_call_wall.strike * 100) / 100,
+        importance: 10,
+        type: "major_call_wall",
+        label: "Major Call Wall",
+        dte: dteDisplay,
+        description: `Primary call resistance - ${Math.round(
+          advanced.top_call_wall.abs_gex
+        )} GEX`,
+      });
+    }
+
+    if (advanced.top_put_wall) {
+      levels.push({
+        strike: Math.round(advanced.top_put_wall.strike * 100) / 100,
+        importance: 10,
+        type: "major_put_wall",
+        label: "Major Put Wall",
+        dte: dteDisplay,
+        description: `Primary put support - ${Math.round(
+          advanced.top_put_wall.abs_gex
+        )} GEX`,
+      });
+    }
+
+    // IMPORTANCE 9 - HVL
+    advanced.hvl_levels.forEach((hvl, idx) => {
+      levels.push({
+        strike: Math.round(hvl.strike * 100) / 100,
+        importance: 9,
+        type: "high_vol_level",
+        label: `HVL #${idx + 1}`,
+        dte: dteDisplay,
+        description: `High vol zone - ${Math.round(
+          hvl.abs_gex
+        )} GEX @ ${hvl.distance_pct.toFixed(1)}%`,
+      });
+    });
+
+    // IMPORTANCE 9 - 0DTE Walls
+    if (isZeroDte) {
+      const put0dte = advanced.all_put_walls
+        .slice(0, 3)
+        .filter((p) => p.strike < spotPrice);
+      put0dte.slice(0, 2).forEach((ps, idx) => {
+        levels.push({
+          strike: Math.round(ps.strike * 100) / 100,
+          importance: 9,
+          type: "put_wall_0dte",
+          label: `Put Wall 0DTE #${idx + 1}`,
+          dte: dteDisplay,
+          description: `0DTE put support - ${Math.round(ps.abs_gex)} GEX`,
+        });
+      });
+
+      const call0dte = advanced.all_call_walls
+        .slice(0, 3)
+        .filter((c) => c.strike > spotPrice);
+      call0dte.slice(0, 2).forEach((cr, idx) => {
+        levels.push({
+          strike: Math.round(cr.strike * 100) / 100,
+          importance: 9,
+          type: "call_wall_0dte",
+          label: `Call Wall 0DTE #${idx + 1}`,
+          dte: dteDisplay,
+          description: `0DTE call resistance - ${Math.round(cr.abs_gex)} GEX`,
+        });
+      });
+    }
+
+    // IMPORTANCE 9/8 - Walls from API
+    const majorDataSource = majorsData || chainData;
+    const callWallVolume =
+      majorDataSource.mpos_vol || majorDataSource.major_pos_vol || 0;
+    const putWallVolume =
+      majorDataSource.mneg_vol || majorDataSource.major_neg_vol || 0;
+    const callWallOi =
+      majorDataSource.mpos_oi || majorDataSource.major_pos_oi || 0;
+    const putWallOi =
+      majorDataSource.mneg_oi || majorDataSource.major_neg_oi || 0;
+
+    if (callWallVolume && callWallVolume !== 0) {
+      levels.push({
+        strike: Math.round(callWallVolume * 100) / 100,
+        importance: 9,
+        type: "call_wall_volume",
+        label: "Call Wall (Vol)",
+        dte: dteDisplay,
+        description: "Call wall from volume data",
+      });
+    }
+
+    if (putWallVolume && putWallVolume !== 0) {
+      levels.push({
+        strike: Math.round(putWallVolume * 100) / 100,
+        importance: 9,
+        type: "put_wall_volume",
+        label: "Put Wall (Vol)",
+        dte: dteDisplay,
+        description: "Put wall from volume data",
+      });
+    }
+
+    if (callWallOi && callWallOi !== 0) {
+      levels.push({
+        strike: Math.round(callWallOi * 100) / 100,
+        importance: 8,
+        type: "call_wall_oi",
+        label: "Call Wall (OI)",
+        dte: dteDisplay,
+        description: "Call wall from open interest",
+      });
+    }
+
+    if (putWallOi && putWallOi !== 0) {
+      levels.push({
+        strike: Math.round(putWallOi * 100) / 100,
+        importance: 8,
+        type: "put_wall_oi",
+        label: "Put Wall (OI)",
+        dte: dteDisplay,
+        description: "Put wall from open interest",
+      });
+    }
+
+    // IMPORTANCE 8 - Secondary Walls
+    advanced.all_call_walls.slice(1, 4).forEach((cw, idx) => {
+      levels.push({
+        strike: Math.round(cw.strike * 100) / 100,
+        importance: 8,
+        type: "call_wall_secondary",
+        label: `Call Wall #${idx + 2}`,
+        dte: dteDisplay,
+        description: `Secondary call resistance - ${Math.round(
+          cw.abs_gex
+        )} GEX`,
+      });
+    });
+
+    advanced.all_put_walls.slice(1, 4).forEach((pw, idx) => {
+      levels.push({
+        strike: Math.round(pw.strike * 100) / 100,
+        importance: 8,
+        type: "put_wall_secondary",
+        label: `Put Wall #${idx + 2}`,
+        dte: dteDisplay,
+        description: `Secondary put support - ${Math.round(pw.abs_gex)} GEX`,
+      });
+    });
+
+    // IMPORTANCE 8 - Max Pain
+    let minGex = Infinity;
+    let maxPain = null;
+    strikeGexCurve.forEach((strikeArray) => {
+      if (Array.isArray(strikeArray) && strikeArray.length >= 3) {
+        const totalGex = Math.abs(strikeArray[1] + strikeArray[2]);
+        if (totalGex < minGex) {
+          minGex = totalGex;
+          maxPain = strikeArray[0];
+        }
+      }
+    });
+
+    if (maxPain) {
+      levels.push({
+        strike: Math.round(maxPain * 100) / 100,
+        importance: 8,
+        type: "max_pain",
+        label: "Max Pain",
+        dte: dteDisplay,
+        description: "Expiration target - min GEX",
+      });
+    }
+
+    // IMPORTANCE 7 - Individual Strikes
+    const strikesData = [];
+    strikeGexCurve.forEach((strikeArray) => {
+      if (Array.isArray(strikeArray) && strikeArray.length >= 3) {
+        const totalGexSum = strikeArray[1] + strikeArray[2];
+        const totalGex = Math.abs(totalGexSum);
+        if (totalGex > 100) {
+          strikesData.push({
+            strike: Math.round(strikeArray[0] * 100) / 100,
+            total_gex: totalGex,
+            is_call: totalGexSum > 0,
+          });
+        }
+      }
+    });
+
+    strikesData.sort((a, b) => b.total_gex - a.total_gex);
+    strikesData.slice(0, 15).forEach((s) => {
+      const strikeType = s.is_call ? "Call Strike" : "Put Strike";
+      const strikeDesc = s.is_call ? "Call strike" : "Put strike";
+      levels.push({
+        strike: s.strike,
+        importance: 7,
+        type: s.is_call ? "strike_call" : "strike_put",
+        label: strikeType,
+        dte: dteDisplay,
+        description: `${strikeDesc} - ${Math.round(s.total_gex)} GEX`,
+      });
+    });
+
+    // Remove duplicates and sort by importance
+    const uniqueLevels = [];
+    const seenStrikes = new Set();
+    levels.forEach((level) => {
+      if (!seenStrikes.has(level.strike)) {
+        seenStrikes.add(level.strike);
+        uniqueLevels.push(level);
+      }
+    });
+    uniqueLevels.sort((a, b) => b.importance - a.importance);
+
+    const metadata = {
+      data_timestamp: chainData.timestamp || 0,
+      underlying_symbol: chainData.ticker || sourceTicker,
+      spot_price: spotPrice,
+      front_expiry_dte: frontExpiryDte,
+      next_expiry_dte: nextExpiryDte,
+      volatility_trigger: volatilityTrigger,
+      net_gex_volume: chainData.sum_gex_vol || 0,
+      net_gex_oi: chainData.sum_gex_oi || 0,
+      call_res_all: advanced.call_res_all,
+      put_sup_all: advanced.put_sup_all,
+    };
+
+    return { levels: uniqueLevels, metadata };
+  };
+
+  // Convert levels to CSV string
+  const levelsToCSV = (levels) => {
+    if (!levels || levels.length === 0) return "";
+
+    const headers = "strike,importance,type,label,dte,description";
+    const rows = levels.map((level) => {
+      // Nettoyer la description
+      const cleanDesc = (level.description || "")
+        .replace(/"/g, "") // Supprimer guillemets
+        .replace(/'/g, "") // Supprimer apostrophes
+        .replace(/\n/g, " ") // Remplacer sauts de ligne par espaces
+        .replace(/\r/g, "") // Supprimer retours chariot
+        .replace(/@/g, "") // Supprimer @
+        .replace(/,/g, "-") // Remplacer virgules par tirets
+        .replace(/\|/g, "") // Supprimer pipes
+        .replace(/\\/g, "") // Supprimer backslashes
+        .trim();
+
+      return `${level.strike},${level.importance},${level.type},${level.label},${level.dte},${cleanDesc}`;
+    });
+
+    // UN SEUL backslash pour Pine Script !
+    return headers + "\\n" + rows.join("\\n");
+  };
+
+  // Convert metadata to Pine Script string
+  const metadataToString = (metadata) => {
+    return `Timestamp:${metadata.data_timestamp}|Symbol:${
+      metadata.underlying_symbol
+    }|Spot:${metadata.spot_price.toFixed(2)}|FrontDTE:${
+      metadata.front_expiry_dte
+    }|NextDTE:${
+      metadata.next_expiry_dte
+    }|VolTrigger:${metadata.volatility_trigger.toFixed(
+      2
+    )}|NetGEXVol:${metadata.net_gex_volume.toFixed(
+      2
+    )}|NetGEXOI:${metadata.net_gex_oi.toFixed(
+      2
+    )}|CallResAll:${metadata.call_res_all.toFixed(
+      2
+    )}|PutSupAll:${metadata.put_sup_all.toFixed(2)}`;
+  };
+
+  // Generate Pine Script with data
+  const generatePineScript = (csvDataDict, metadataDict) => {
+    const spxMultiplier = TICKERS.SPX.multiplier;
+    const ndxMultiplier = TICKERS.NDX.multiplier;
+
+    return `//@version=6
+indicator("GEX Professional Levels", overlay=true, max_lines_count=500, max_labels_count=500)
+
+// ==================== CSV DATA (AUTO-GENERATED) ====================
+string es_csv_zero = "${csvDataDict.es_zero || ""}"
+string es_csv_one = "${csvDataDict.es_one || ""}"
+string es_csv_full = "${csvDataDict.es_full || ""}"
+string nq_csv_zero = "${csvDataDict.nq_zero || ""}"
+string nq_csv_one = "${csvDataDict.nq_one || ""}"
+string nq_csv_full = "${csvDataDict.nq_full || ""}"
+
+// ==================== METADATA ====================
+string es_meta_zero = "${metadataDict.es_zero || ""}"
+string es_meta_one = "${metadataDict.es_one || ""}"
+string es_meta_full = "${metadataDict.es_full || ""}"
+string nq_meta_zero = "${metadataDict.nq_zero || ""}"
+string nq_meta_one = "${metadataDict.nq_one || ""}"
+string nq_meta_full = "${metadataDict.nq_full || ""}"
+
+// ==================== AUTO-DETECTION TICKER ====================
+string detected_ticker = "ES"
+if str.contains(syminfo.ticker, "NQ") or str.contains(syminfo.ticker, "NDX") or str.contains(syminfo.ticker, "NAS")
+    detected_ticker := "NQ"
+else if str.contains(syminfo.ticker, "ES") or str.contains(syminfo.ticker, "SPX") or str.contains(syminfo.ticker, "SP500")
+    detected_ticker := "ES"
+
+// ==================== MULTIPLICATEURS FIXES ====================
+float SPX_MULTIPLIER = ${spxMultiplier}
+float NDX_MULTIPLIER = ${ndxMultiplier}
+
+float conversion_multiplier = 1.0
+bool needs_conversion = false
+
+if detected_ticker == "ES"
+    if str.contains(syminfo.ticker, "ES") and not str.contains(syminfo.ticker, "SPX")
+        conversion_multiplier := SPX_MULTIPLIER
+        needs_conversion := true
+else if detected_ticker == "NQ"
+    if str.contains(syminfo.ticker, "NQ") and not str.contains(syminfo.ticker, "NDX")
+        conversion_multiplier := NDX_MULTIPLIER
+        needs_conversion := true
+
+// ==================== PARAMÈTRES ====================
+string selected_dte = input.string("0DTE", "📅 DTE Period", options=["0DTE", "1DTE", "FULL"], group="🎯 Settings", tooltip="Days To Expiration")
+
+// ==================== FILTRES PAR IMPORTANCE ====================
+bool show_imp_10 = input.bool(true, "Importance 10 (Major Walls/Volatility Trigger)", group="🎯 Importance Filters")
+bool show_imp_9 = input.bool(true, "Importance 9 (High Vol Levels, 0DTE Walls)", group="🎯 Importance Filters")
+bool show_imp_8 = input.bool(true, "Importance 8 (Secondary Walls, Max Pain)", group="🎯 Importance Filters")
+bool show_imp_7 = input.bool(false, "Importance 7 (Individual Strikes, Vol Triggers)", group="🎯 Importance Filters")
+
+// ==================== FILTRES PAR TYPE ====================
+bool show_volatility_trigger = input.bool(true, "Volatility Trigger", group="📌 Level Types", tooltip="Zero gamma flip point")
+bool show_major_walls = input.bool(true, "Major Call/Put Walls", group="📌 Level Types", tooltip="Primary resistance and support")
+bool show_high_vol_levels = input.bool(true, "High Vol Levels (HVL)", group="📌 Level Types", tooltip="High volatility zones near spot")
+bool show_0dte_walls = input.bool(true, "0DTE Call/Put Walls", group="📌 Level Types", tooltip="Same-day expiry walls")
+bool show_secondary_walls = input.bool(true, "Secondary Walls", group="📌 Level Types", tooltip="Call resistance and put support #2-4")
+bool show_max_pain = input.bool(true, "Max Pain Level", group="📌 Level Types", tooltip="Expiration target strike")
+bool show_individual_strikes = input.bool(false, "Individual Strikes", group="📌 Level Types", tooltip="Top 15 strikes by GEX")
+bool show_vol_triggers = input.bool(false, "Vol Triggers (Timeframe)", group="📌 Level Types", tooltip="GEX change triggers by interval")
+
+// ==================== STYLE ====================
+color color_volatility_trigger = input.color(color.new(color.purple, 0), "Volatility Trigger", group="🎨 Colors", inline="c1")
+color color_major_call_wall = input.color(color.new(color.red, 0), "Major Call Wall", group="🎨 Colors", inline="c2")
+color color_major_put_wall = input.color(color.new(color.green, 0), "Major Put Wall", group="🎨 Colors", inline="c3")
+color color_high_vol_level = input.color(color.new(color.orange, 0), "High Vol Level", group="🎨 Colors", inline="c4")
+color color_0dte_walls = input.color(color.new(color.yellow, 0), "0DTE Walls", group="🎨 Colors", inline="c5")
+color color_secondary_walls = input.color(color.new(color.gray, 30), "Secondary Walls", group="🎨 Colors", inline="c6")
+color color_max_pain = input.color(color.new(color.blue, 0), "Max Pain", group="🎨 Colors", inline="c7")
+color color_strikes = input.color(color.new(color.silver, 50), "Individual Strikes", group="🎨 Colors", inline="c8")
+color color_vol_trigger = input.color(color.new(color.fuchsia, 0), "Vol Triggers", group="🎨 Colors", inline="c9")
+
+// ==================== LABEL SETTINGS ====================
+bool show_labels = input.bool(true, "Show Labels", group="🏷️ Labels", tooltip="Display level labels on chart")
+bool show_descriptions = input.bool(false, "Show Descriptions", group="🏷️ Labels", tooltip="Add detailed descriptions to labels")
+string label_size = input.string("Small", "Label Size", options=["Tiny", "Small", "Normal", "Large"], group="🏷️ Labels")
+bool use_distance_filter = input.bool(false, "Filter Labels Near Price", group="🏷️ Labels", tooltip="Hide labels too close to current price")
+float label_min_distance_pct = input.float(0.3, "Min Distance from Price (%)", minval=0, maxval=5, step=0.1, group="🏷️ Labels")
+
+// ==================== METADATA DISPLAY ====================
+bool show_metadata = input.bool(false, "Show Market Info Table", group="📊 Metadata", tooltip="Display GEX metadata table")
+
+// ==================== DEFINITIONS TABLE ====================
+bool show_definitions = input.bool(false, "Afficher les Définitions", group="📖 Aide", tooltip="Tableau des définitions des termes GEX")
+
+// ==================== STOCKAGE ====================
+var array<line> all_lines = array.new<line>()
+var array<label> all_labels = array.new<label>()
+
+// ==================== FONCTIONS ====================
+get_label_size(string size) =>
+    size == "Tiny" ? size.tiny : size == "Small" ? size.small : size == "Normal" ? size.normal : size.large
+
+should_show_level(int importance, string level_type) =>
+    bool show_importance = (importance == 10 and show_imp_10) or (importance == 9 and show_imp_9) or (importance == 8 and show_imp_8) or (importance == 7 and show_imp_7)
+    
+    bool show_type = false
+    if str.contains(level_type, "volatility_trigger")
+        show_type := show_volatility_trigger
+    else if str.contains(level_type, "major_call_wall") or str.contains(level_type, "major_put_wall")
+        show_type := show_major_walls
+    else if str.contains(level_type, "high_vol_level")
+        show_type := show_high_vol_levels
+    else if str.contains(level_type, "0dte")
+        show_type := show_0dte_walls
+    else if str.contains(level_type, "call_resistance") or str.contains(level_type, "put_support") or str.contains(level_type, "call_wall") or str.contains(level_type, "put_wall")
+        show_type := show_secondary_walls
+    else if str.contains(level_type, "max_pain")
+        show_type := show_max_pain
+    else if str.contains(level_type, "strike_")
+        show_type := show_individual_strikes
+    else if str.contains(level_type, "vol_trigger")
+        show_type := show_vol_triggers
+    
+    show_importance and show_type
+
+get_level_color(string level_type) =>
+    color result = color_strikes
+    if str.contains(level_type, "volatility_trigger")
+        result := color_volatility_trigger
+    else if str.contains(level_type, "major_call_wall")
+        result := color_major_call_wall
+    else if str.contains(level_type, "major_put_wall")
+        result := color_major_put_wall
+    else if str.contains(level_type, "high_vol_level")
+        result := color_high_vol_level
+    else if str.contains(level_type, "0dte")
+        result := color_0dte_walls
+    else if str.contains(level_type, "call_resistance") or str.contains(level_type, "put_support") or str.contains(level_type, "call_wall") or str.contains(level_type, "put_wall")
+        result := color_secondary_walls
+    else if str.contains(level_type, "max_pain")
+        result := color_max_pain
+    else if str.contains(level_type, "vol_trigger")
+        result := color_vol_trigger
+    result
+
+clear_all_objects() =>
+    if array.size(all_lines) > 0
+        for i = 0 to array.size(all_lines) - 1
+            line.delete(array.get(all_lines, i))
+        array.clear(all_lines)
+    if array.size(all_labels) > 0
+        for i = 0 to array.size(all_labels) - 1
+            label.delete(array.get(all_labels, i))
+        array.clear(all_labels)
+
+process_csv(string csv_data) =>
+    if bar_index == last_bar_index
+        lines_array = str.split(csv_data, "\\n")  // 2 backslashes (échappement Pine)
+        int total_lines = array.size(lines_array)
+        for i = 1 to total_lines - 1
+            if i < total_lines
+                string line_str = array.get(lines_array, i)
+                if str.length(line_str) > 10 and not str.contains(line_str, "strike,importance")
+                    fields = str.split(line_str, ",")
+                    int num_fields = array.size(fields)
+                    if num_fields >= 6
+                        string field0 = array.get(fields, 0)
+                        string field1 = array.get(fields, 1)
+                        if str.length(field0) > 0 and str.length(field1) > 0
+                            float strike_price_raw = str.tonumber(field0)
+                            int importance = int(str.tonumber(field1))
+                            if not na(strike_price_raw) and not na(importance) and importance >= 7 and importance <= 10
+                                float strike_price = needs_conversion ? strike_price_raw * conversion_multiplier : strike_price_raw
+                                
+                                string level_type = array.get(fields, 2)
+                                string label_text = array.get(fields, 3)
+                                string description = num_fields >= 6 ? array.get(fields, 5) : ""
+                                
+                                if should_show_level(importance, level_type)
+                                    color level_color = get_level_color(level_type)
+                                    line new_line = line.new(x1=bar_index[500], y1=strike_price, x2=bar_index, y2=strike_price, color=level_color, width=1, style=line.style_solid, extend=extend.right)
+                                    array.push(all_lines, new_line)
+                                    
+                                    if show_labels
+                                        bool show_this_label = true
+                                        if use_distance_filter
+                                            float price_distance = math.abs(close - strike_price)
+                                            float min_distance = close * (label_min_distance_pct / 100)
+                                            show_this_label := price_distance > min_distance
+                                        
+                                        if show_this_label
+                                            string final_label = label_text + " " + str.tostring(strike_price, "#.##")
+                                            if show_descriptions and str.length(description) > 0
+                                                final_label := final_label + "\\n" + description  // 2 backslashes
+                                            
+                                            label new_label = label.new(x=bar_index, y=strike_price, text=final_label, color=color.new(color.white, 100), textcolor=level_color, style=label.style_none, size=get_label_size(label_size))
+                                            array.push(all_labels, new_label)
+
+// ==================== EXÉCUTION ====================
+if barstate.islast
+    clear_all_objects()
+    
+    string csv_active = ""
+    string meta_active = ""
+    
+    if detected_ticker == "ES"
+        csv_active := selected_dte == "0DTE" ? es_csv_zero : selected_dte == "1DTE" ? es_csv_one : es_csv_full
+        meta_active := selected_dte == "0DTE" ? es_meta_zero : selected_dte == "1DTE" ? es_meta_one : es_meta_full
+    else
+        csv_active := selected_dte == "0DTE" ? nq_csv_zero : selected_dte == "1DTE" ? nq_csv_one : nq_csv_full
+        meta_active := selected_dte == "0DTE" ? nq_meta_zero : selected_dte == "1DTE" ? nq_meta_one : nq_meta_full
+    
+    process_csv(csv_active)
+    
+    if show_metadata and str.length(meta_active) > 0
+        var table meta_tbl = table.new(position.top_right, 2, 11, bgcolor=color.new(color.gray, 85), border_width=1, border_color=color.new(color.white, 50))
+        
+        table.clear(meta_tbl, 0, 0, 1, 10)
+        
+        parts = str.split(meta_active, "|")
+        table.cell(meta_tbl, 0, 0, "GEX Metadata", text_color=color.white, text_size=size.small, bgcolor=color.new(color.blue, 70))
+        table.cell(meta_tbl, 1, 0, "", text_color=color.white, text_size=size.small, bgcolor=color.new(color.blue, 70))
+        
+        int row = 1
+        for part in parts
+            kv = str.split(part, ":")
+            if array.size(kv) == 2
+                key = array.get(kv, 0)
+                val = array.get(kv, 1)
+                table.cell(meta_tbl, 0, row, key, text_color=color.white, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+                table.cell(meta_tbl, 1, row, val, text_color=color.yellow, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+                row := row + 1
+    
+    if show_definitions
+        var table def_tbl = table.new(position.bottom_left, 2, 11, bgcolor=color.new(color.gray, 85), border_width=1, border_color=color.new(color.white, 50))
+        
+        table.clear(def_tbl, 0, 0, 1, 10)
+        
+        table.cell(def_tbl, 0, 0, "📖 TERMES GEX", text_color=color.white, text_size=size.small, bgcolor=color.new(color.purple, 70))
+        table.cell(def_tbl, 1, 0, "DÉFINITION", text_color=color.white, text_size=size.small, bgcolor=color.new(color.purple, 70))
+        
+        table.cell(def_tbl, 0, 1, "GEX", text_color=color.white, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 1, "Gamma Exposure - Volume de couverture nécessaire aux market makers pour un mouvement de 1%", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        table.cell(def_tbl, 0, 2, "Zero Gamma", text_color=color.purple, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 2, "Point de bascule où le gamma net = 0. Au-dessus: volatilité amplifiée. En dessous: volatilité supprimée", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        table.cell(def_tbl, 0, 3, "Major Call Wall", text_color=color.red, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 3, "Résistance primaire - Strike call avec le plus fort GEX. Les MM vendent en approchant ce niveau", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        table.cell(def_tbl, 0, 4, "Major Put Wall", text_color=color.green, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 4, "Support primaire - Strike put avec le plus fort GEX. Les MM achètent en approchant ce niveau", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        table.cell(def_tbl, 0, 5, "HVL", text_color=color.orange, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 5, "High Vol Level - Zone de fort GEX proche du spot (<1.5%). Intensifie les mouvements de prix", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        table.cell(def_tbl, 0, 6, "0DTE Walls", text_color=color.yellow, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 6, "Murs d'expiration jour même - Support/résistance actifs uniquement le jour d'expiration", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        table.cell(def_tbl, 0, 7, "Max Pain", text_color=color.blue, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 7, "Strike où le GEX total est minimal - Cible d'expiration théorique où les options perdent le plus", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        table.cell(def_tbl, 0, 8, "Vol Trigger", text_color=color.fuchsia, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 8, "Strike avec variation GEX significative sur intervalle temporel - Signal de changement de flux", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        table.cell(def_tbl, 0, 9, "DTE", text_color=color.white, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 9, "Days To Expiration - Jours avant expiration des options (0DTE = jour même, 1DTE = lendemain)", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        
+        table.cell(def_tbl, 0, 10, "Gamma Regime", text_color=color.white, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+        table.cell(def_tbl, 1, 10, "Pos: MM stabilisent (achètent bas/vendent haut). Neg: MM amplifient (achètent haut/vendent bas)", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
+
+plot(close, title="Price", display=display.none)`;
+  };
+
+  // Main data fetching effect
+  useEffect(() => {
+    const fetchAllData = async () => {
+      setLoading(true);
+      setError(null);
+
+      console.log("🚀 Fetching GEX data from API...");
+
+      try {
+        const csvDataDict = {};
+        const metadataDict = {};
+        const displayData = {
+          es: { zero: [], one: [], full: [] },
+          nq: { zero: [], one: [], full: [] },
+        };
+
+        // Fetch data for all tickers and DTE periods
+        for (const [sourceTicker, config] of Object.entries(TICKERS)) {
+          const target = config.target.toLowerCase();
+
+          for (const [dteKey, dteApiName] of Object.entries(DTE_PERIODS)) {
+            console.log(`📡 Fetching ${sourceTicker}/${dteApiName}...`);
+
+            const chainData = await fetchGexData(
+              sourceTicker,
+              dteApiName.toLowerCase()
+            );
+            const majorsData = await fetchGexMajors(
+              sourceTicker,
+              dteApiName.toLowerCase()
+            );
+
+            if (chainData && chainData.strikes) {
+              const { levels, metadata } = generateLevels(
+                sourceTicker,
+                chainData,
+                majorsData,
+                dteApiName
+              );
+
+              const csvKey = `${target}_${dteKey}`;
+              csvDataDict[csvKey] = levelsToCSV(levels);
+              metadataDict[csvKey] = metadataToString(metadata);
+
+              // Store for display
+              displayData[target][dteKey] = levels;
+
+              console.log(
+                `✅ ${sourceTicker}/${dteApiName} - ${levels.length} levels generated`
+              );
+            }
+          }
+        }
+
+        // Generate Pine Script
+        const generatedPineCode = generatePineScript(csvDataDict, metadataDict);
+        setPineCode(generatedPineCode);
+        setGexData(displayData);
+
+        // Set last update timestamp
+        const now = new Date();
+        setLastUpdate(
+          now.toLocaleString("fr-FR", {
+            dateStyle: "long",
+            timeStyle: "short",
+            timeZone: "Europe/Paris",
+          })
+        );
+
+        console.log("✅ Pine Script generated successfully!");
+        setLoading(false);
+      } catch (err) {
+        console.error("❌ Error fetching GEX data:", err);
+        setError(
+          "Erreur lors du chargement des données GEX. Vérifiez votre clé API."
+        );
+        setLoading(false);
+      }
+    };
+
+    fetchAllData();
+
+    // Auto-refresh every 5 minutes
+    const interval = setInterval(fetchAllData, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const copyToClipboard = async () => {
     try {
@@ -66,36 +838,29 @@ function App() {
     setMenuOpen(false);
   };
 
-  // Parse last update date using useMemo
-  const lastUpdate = useMemo(() => {
-    try {
-      const raw = (lastUpdateRaw || "").trim();
-      if (!raw) return "";
+  if (loading) {
+    return (
+      <div className="app modern">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Chargement des données GEX en temps réel...</p>
+          <p className="loading-subtitle">Appels API en cours vers GexBot</p>
+        </div>
+      </div>
+    );
+  }
 
-      let d = new Date(raw);
-      if (isNaN(d.getTime())) {
-        const isoVariant = raw.replace(" ", "T").replace(" UTC", "Z");
-        d = new Date(isoVariant);
-      }
-      if (isNaN(d.getTime())) {
-        const m = raw.match(/(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}:\d{2})/);
-        if (m) {
-          d = new Date(`${m[1]}T${m[2]}Z`);
-        }
-      }
-      if (!isNaN(d.getTime())) {
-        return d.toLocaleString("fr-FR", {
-          dateStyle: "long",
-          timeStyle: "short",
-          timeZone: "Europe/Paris",
-        });
-      }
-      return raw;
-    } catch (e) {
-      console.error("Failed to parse last update", e);
-      return "";
-    }
-  }, []);
+  if (error) {
+    return (
+      <div className="app modern">
+        <div className="error-container">
+          <h2>❌ Erreur</h2>
+          <p>{error}</p>
+          <button onClick={() => window.location.reload()}>Réessayer</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="app modern">
@@ -133,7 +898,6 @@ function App() {
         </div>
       </nav>
 
-      {/* Update banner */}
       {lastUpdate && (
         <div className="update-banner" role="status" aria-live="polite">
           Dernière mise à jour : <strong>{lastUpdate}</strong>
@@ -141,10 +905,9 @@ function App() {
       )}
 
       <main className="main">
-        {/* Hero compact */}
         <section className="hero-compact" id="home">
           <div className="hero-compact-inner">
-            <div className="badge">TradingView Pine Script v5</div>
+            <div className="badge">TradingView Pine Script v6</div>
             <h1>GEX Levels — ES & NQ Futures</h1>
             <p className="lead">
               Niveaux d'exposition gamma (GEX) en temps réel pour ES (SPX) et NQ
@@ -163,13 +926,12 @@ function App() {
               </div>
               <div className="stat-inline">
                 <span className="stat-icon">⚡</span>
-                <span>Temps réel</span>
+                <span>API en direct</span>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Code Section */}
         <section className="code-section-primary">
           <div className="code-container">
             <div className="code-header">
@@ -254,7 +1016,6 @@ function App() {
           </div>
         </section>
 
-        {/* GEX Levels Section */}
         <section className="gex-levels-section" id="levels">
           <h2>📊 Niveaux GEX Actuels</h2>
           <p className="section-subtitle">
@@ -263,7 +1024,6 @@ function App() {
           </p>
 
           <div className="gex-container">
-            {/* ES (SPX) Levels */}
             <div className="gex-instrument">
               <h3>
                 <span className="instrument-icon">📈</span>
@@ -277,7 +1037,6 @@ function App() {
               </div>
             </div>
 
-            {/* NQ (NDX) Levels */}
             <div className="gex-instrument">
               <h3>
                 <span className="instrument-icon">💹</span>
@@ -293,7 +1052,6 @@ function App() {
           </div>
         </section>
 
-        {/* Features */}
         <section className="features" id="features" ref={featuresRef}>
           <h2>Fonctionnalités</h2>
           <div className="features-grid">
@@ -314,9 +1072,10 @@ function App() {
             </div>
             <div className="feature">
               <div className="feature-icon">⏱️</div>
-              <h4>Temps réel</h4>
+              <h4>Temps réel via API</h4>
               <p className="muted">
-                Mise à jour automatique toutes les 5 minutes via GitHub Actions
+                Mise à jour automatique toutes les 5 minutes via appels API
+                directs
               </p>
             </div>
             <div className="feature">
@@ -337,13 +1096,12 @@ function App() {
               <div className="feature-icon">🚀</div>
               <h4>Performance</h4>
               <p className="muted">
-                Code optimisé Pine Script v5 pour une exécution rapide
+                Code optimisé Pine Script v6 pour une exécution rapide
               </p>
             </div>
           </div>
         </section>
 
-        {/* Footer */}
         <footer className="site-footer">
           <div className="footer-content">
             <div className="footer-brand">
@@ -367,7 +1125,6 @@ function App() {
   );
 }
 
-// Component for displaying GEX table
 function GexTable({ title, data, color }) {
   if (!data || data.length === 0) {
     return (
@@ -385,17 +1142,27 @@ function GexTable({ title, data, color }) {
         <table className="gex-table">
           <thead>
             <tr>
-              {Object.keys(data[0]).map((key) => (
-                <th key={key}>{key}</th>
-              ))}
+              <th>Strike</th>
+              <th>Imp.</th>
+              <th>Type</th>
+              <th>Label</th>
+              <th>Description</th>
             </tr>
           </thead>
           <tbody>
-            {data.map((row, idx) => (
+            {data.slice(0, 20).map((level, idx) => (
               <tr key={idx}>
-                {Object.values(row).map((val, i) => (
-                  <td key={i}>{val}</td>
-                ))}
+                <td>
+                  <strong>{level.strike}</strong>
+                </td>
+                <td>
+                  <span className={`importance-badge imp-${level.importance}`}>
+                    {level.importance}
+                  </span>
+                </td>
+                <td className="type-cell">{level.type}</td>
+                <td>{level.label}</td>
+                <td className="description-cell">{level.description}</td>
               </tr>
             ))}
           </tbody>
