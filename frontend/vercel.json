@@ -3,6 +3,10 @@
     {
       "source": "/api/gexbot/:match*",
       "destination": "/api/gexbot"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
