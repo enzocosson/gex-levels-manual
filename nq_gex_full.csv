@@ -10,6 +10,10 @@ strike,importance,type,label,dte,description
 25550.0,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 2908 GEX
 25510.0,8,put_wall_oi,Put Wall (OI),0DTE,Put wall from open interest
 25250.0,8,call_wall_oi,Call Wall (OI),0DTE,Call wall from open interest
+25518.38,8,put_wall_oi,Put Wall (OI),0DTE,Put wall from open interest
+25550.0,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 2485 GEX
+25510.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 1351 GEX
+25470.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 5834 GEX
 25060.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX
 25460.0,7,strike_put,Put Strike,0DTE,Put strike - 5095 GEX
 25450.0,7,strike_put,Put Strike,0DTE,Put strike - 3401 GEX

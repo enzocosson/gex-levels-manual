@@ -1,4 +1,13 @@
 strike,importance,type,label,dte,description
+6904.17,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Positive Gamma
+6910.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 215684 GEX
+6900.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 254972 GEX
+6895.0,9,high_vol_level,HVL #3,0DTE,High vol zone - 94216 GEX @ 0.1%
+6915.0,9,call_wall_0dte,Call Wall 0DTE #2,0DTE,0DTE call resistance - 56629 GEX
+6905.0,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 42522 GEX
+6920.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 24095 GEX
+6890.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 34681 GEX
+6885.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 11521 GEX
 6903.39,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Negative Gamma
 6900.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 220074 GEX
 6910.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 222068 GEX
