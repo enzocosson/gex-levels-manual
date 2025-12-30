@@ -1,19 +1,19 @@
 strike,importance,type,label,dte,description
-7000,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 9230 GEX
-6700,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 1867 GEX
-6950,9,high_vol_level,HVL #2,0DTE,High vol zone - 8719 GEX @ 0.7%
-6925,9,high_vol_level,HVL #3,0DTE,High vol zone - 5531 GEX @ 0.3%
-6825,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 1769 GEX
-6835,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 1554 GEX
-7145,8,max_pain,Max Pain,0DTE,Expiration target - min GEX
-6875,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 1765 GEX
-6975,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 3704 GEX
-7050,7,strike_call,Call Strike,0DTE,Call strike - 3209 GEX
-6940,7,strike_call,Call Strike,0DTE,Call strike - 2708 GEX
-6970,7,strike_call,Call Strike,0DTE,Call strike - 2565 GEX
-6955,7,strike_call,Call Strike,0DTE,Call strike - 2228 GEX
-6960,7,strike_call,Call Strike,0DTE,Call strike - 2191 GEX
-6945,7,strike_call,Call Strike,0DTE,Call strike - 2134 GEX
-6935,7,strike_call,Call Strike,0DTE,Call strike - 2123 GEX
-6980,7,strike_call,Call Strike,0DTE,Call strike - 2091 GEX
-7100,7,strike_call,Call Strike,0DTE,Call strike - 3197 GEX
+6901.61,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Negative Gamma
+7000.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 8535 GEX
+6875.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 1970 GEX
+6950.0,9,high_vol_level,HVL #2,0DTE,High vol zone - 7555 GEX @ 0.6%
+6925.0,9,high_vol_level,HVL #3,0DTE,High vol zone - 6911 GEX @ 0.3%
+6700.0,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 1820 GEX
+6930.0,9,call_wall_volume,Call Wall (Vol),0DTE,Call wall from volume data
+6880.0,9,put_wall_volume,Put Wall (Vol),0DTE,Put wall from volume data
+6825.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 1754 GEX
+6975.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 3177 GEX
+7145.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX
+7050.0,7,strike_call,Call Strike,0DTE,Call strike - 3150 GEX
+7100.0,7,strike_call,Call Strike,0DTE,Call strike - 3137 GEX
+6940.0,7,strike_call,Call Strike,0DTE,Call strike - 2715 GEX
+6935.0,7,strike_call,Call Strike,0DTE,Call strike - 2279 GEX
+6970.0,7,strike_call,Call Strike,0DTE,Call strike - 2218 GEX
+6955.0,7,strike_call,Call Strike,0DTE,Call strike - 1883 GEX
+6980.0,7,strike_call,Call Strike,0DTE,Call strike - 1700 GEX
