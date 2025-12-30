@@ -1,19 +1,20 @@
 strike,importance,type,label,dte,description
-6897.5,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Positive Gamma
-6835.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 4589 GEX
-6900.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 4011 GEX
-6950.0,9,high_vol_level,HVL #3,0DTE,High vol zone - 3843 GEX @ 0.8%
-6825.0,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 1988 GEX
+6900.26,10,zero_gamma,Zero Gamma,0DTE,Vol trigger - Negative Gamma
+6835.0,10,major_put_wall,Major Put Wall,0DTE,Primary put support - 3534 GEX
+6950.0,10,major_call_wall,Major Call Wall,0DTE,Primary call resistance - 4600 GEX
+6900.0,9,high_vol_level,HVL #2,0DTE,High vol zone - 3905 GEX @ 0.0%
+6925.0,9,high_vol_level,HVL #3,0DTE,High vol zone - 3750 GEX @ 0.3%
+6825.0,9,put_wall_0dte,Put Wall 0DTE #2,0DTE,0DTE put support - 1587 GEX
 6945.0,9,call_wall_volume,Call Wall (Vol),0DTE,Call wall from volume data
-6850.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 1134 GEX
-6880.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 691 GEX
-7000.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 2087 GEX
-6925.0,8,call_wall_secondary,Call Wall #3,0DTE,Secondary call resistance - 2952 GEX
-7120.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX
-6940.0,7,strike_call,Call Strike,0DTE,Call strike - 1348 GEX
-6970.0,7,strike_call,Call Strike,0DTE,Call strike - 1085 GEX
-6955.0,7,strike_call,Call Strike,0DTE,Call strike - 1061 GEX
-6935.0,7,strike_call,Call Strike,0DTE,Call strike - 946 GEX
-6930.0,7,strike_call,Call Strike,0DTE,Call strike - 897 GEX
-6980.0,7,strike_call,Call Strike,0DTE,Call strike - 883 GEX
-6975.0,7,strike_call,Call Strike,0DTE,Call strike - 867 GEX
+6850.0,8,put_wall_secondary,Put Wall #3,0DTE,Secondary put support - 782 GEX
+6880.0,8,put_wall_secondary,Put Wall #4,0DTE,Secondary put support - 732 GEX
+7000.0,8,call_wall_secondary,Call Wall #4,0DTE,Secondary call resistance - 2693 GEX
+7140.0,8,max_pain,Max Pain,0DTE,Expiration target - min GEX
+6940.0,7,strike_call,Call Strike,0DTE,Call strike - 1698 GEX
+6955.0,7,strike_call,Call Strike,0DTE,Call strike - 1290 GEX
+6970.0,7,strike_call,Call Strike,0DTE,Call strike - 1271 GEX
+6935.0,7,strike_call,Call Strike,0DTE,Call strike - 1220 GEX
+6975.0,7,strike_call,Call Strike,0DTE,Call strike - 1118 GEX
+6930.0,7,strike_call,Call Strike,0DTE,Call strike - 1084 GEX
+6920.0,7,strike_call,Call Strike,0DTE,Call strike - 1009 GEX
+6980.0,7,strike_call,Call Strike,0DTE,Call strike - 965 GEX
