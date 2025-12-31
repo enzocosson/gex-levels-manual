@@ -876,7 +876,7 @@ process_csv(string csv_data) =>
                 LevelData level = array.get(grouped_levels, i)
                 
                 // Créer la ligne
-                line new_line = line.new(x1=bar_index[500], y1=level.price, x2=bar_index, y2=level.price, color=level.level_color, width=1, style=line.style_solid, extend=extend.right)
+                line new_line = line.new(x1=bar_index[500], y1=level.price, x2=bar_index, y2=level.price, color=level.level_color, width=1, style=line.style_solid, extend=extend.both)
                 array.push(all_lines, new_line)
                 
                 // Créer le label regroupé
