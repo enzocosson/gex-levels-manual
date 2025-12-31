@@ -93,8 +93,16 @@ function App() {
       clearTimeout(timeoutId);
 
       if (!response.ok) return null;
-      return await response.json();
-    } catch {
+      const data = await response.json();
+      // DEBUG: log majors API response for troubleshooting
+      console.log(`📥 /majors response for ${ticker}/${aggregation}:`, data);
+      return data;
+    } catch (e) {
+      // Log errors for visibility
+      console.error(
+        `❌ Error fetching majors for ${ticker}/${aggregation}:`,
+        e
+      );
       return null;
     }
   };
@@ -177,6 +185,18 @@ function App() {
 
     const advanced = calculateAdvancedLevels(strikeGexCurve, spotPrice);
 
+    // DEBUG: log classic raw and advanced calculations when majorsData is not provided
+    if (!majorsData) {
+      console.log(`🔎 classic raw for ${sourceTicker}:`, {
+        zero_gamma: volatilityTrigger,
+        sum_gex_vol: chainData.sum_gex_vol,
+        sum_gex_oi: chainData.sum_gex_oi,
+        spot: spotPrice,
+        strikes_count: strikeGexCurve.length,
+      });
+      console.log(`🔎 classic advanced for ${sourceTicker}:`, advanced);
+    }
+
     const levels = [];
 
     // IMPORTANCE 10 - Volatility Trigger
@@ -190,6 +210,7 @@ function App() {
         label: "Zero Gamma",
         dte: dteDisplay,
         description: `Vol trigger - ${regime}`,
+        source: "classic",
       });
     }
 
@@ -204,6 +225,7 @@ function App() {
         description: `Primary call resistance - ${Math.round(
           advanced.top_call_wall.abs_gex
         )} GEX`,
+        source: "classic",
       });
     }
 
@@ -217,6 +239,7 @@ function App() {
         description: `Primary put support - ${Math.round(
           advanced.top_put_wall.abs_gex
         )} GEX`,
+        source: "classic",
       });
     }
 
@@ -231,6 +254,7 @@ function App() {
         description: `High vol zone - ${Math.round(
           hvl.abs_gex
         )} GEX @ ${hvl.distance_pct.toFixed(1)}%`,
+        source: "classic",
       });
     });
 
@@ -247,6 +271,7 @@ function App() {
           label: `Put Wall 0DTE #${idx + 1}`,
           dte: dteDisplay,
           description: `0DTE put support - ${Math.round(ps.abs_gex)} GEX`,
+          source: "classic",
         });
       });
 
@@ -261,62 +286,115 @@ function App() {
           label: `Call Wall 0DTE #${idx + 1}`,
           dte: dteDisplay,
           description: `0DTE call resistance - ${Math.round(cr.abs_gex)} GEX`,
+          source: "classic",
         });
       });
     }
 
-    // IMPORTANCE 9/8 - Walls from API
+    // IMPORTANCE 10/9/8 - Walls from API /majors
     const majorDataSource = majorsData || chainData;
-    const callWallVolume =
-      majorDataSource.mpos_vol || majorDataSource.major_pos_vol || 0;
-    const putWallVolume =
-      majorDataSource.mneg_vol || majorDataSource.major_neg_vol || 0;
-    const callWallOi =
-      majorDataSource.mpos_oi || majorDataSource.major_pos_oi || 0;
-    const putWallOi =
-      majorDataSource.mneg_oi || majorDataSource.major_neg_oi || 0;
 
+    // ✅ Extraire TOUS les 5 niveaux de l'API /majors
+    const callWallVolume = majorDataSource.mpos_vol || 0;
+    const putWallVolume = majorDataSource.mneg_vol || 0;
+    const callWallOi = majorDataSource.mpos_oi || 0;
+    const putWallOi = majorDataSource.mneg_oi || 0;
+    const zeroGammaMajors = majorDataSource.zero_gamma || 0;
+
+    // DEBUG: show raw majors-derived values
+    if (majorsData) {
+      console.log(`🔎 majors raw for ${sourceTicker}:`, {
+        zero_gamma: zeroGammaMajors,
+        mpos_vol: callWallVolume,
+        mpos_oi: callWallOi,
+        mneg_vol: putWallVolume,
+        mneg_oi: putWallOi,
+        spot: majorDataSource.spot,
+      });
+    }
+
+    // Déterminer si les données viennent de majors ou classic
+    const dataSource = majorsData ? "majors" : "classic";
+
+    // ✅ ZERO GAMMA FROM MAJORS (importance 10)
+    if (zeroGammaMajors && zeroGammaMajors !== 0 && dataSource === "majors") {
+      levels.push({
+        strike: Math.round(zeroGammaMajors * 100) / 100,
+        importance: 10,
+        type: "zero_gamma_majors",
+        label: "Zero Gamma - API",
+        dte: dteDisplay,
+        description: "Zero gamma from majors API",
+        source: dataSource,
+      });
+    }
+
+    // ✅ CALL WALL VOLUME (importance 9)
     if (callWallVolume && callWallVolume !== 0) {
+      console.log(`➕ adding call_wall_volume ${callWallVolume}`);
       levels.push({
         strike: Math.round(callWallVolume * 100) / 100,
         importance: 9,
         type: "call_wall_volume",
-        label: "Call Wall (Vol)",
+        label:
+          dataSource === "majors" ? "Call Wall (Vol) - API" : "Call Wall Vol",
         dte: dteDisplay,
-        description: "Call wall from volume data",
+        description:
+          dataSource === "majors"
+            ? "Call wall from majors API"
+            : "Call wall from volume data",
+        source: dataSource,
       });
     }
 
     if (putWallVolume && putWallVolume !== 0) {
+      console.log(`➕ adding put_wall_volume ${putWallVolume}`);
       levels.push({
         strike: Math.round(putWallVolume * 100) / 100,
         importance: 9,
         type: "put_wall_volume",
-        label: "Put Wall (Vol)",
+        label:
+          dataSource === "majors" ? "Put Wall (Vol) - API" : "Put Wall Vol",
         dte: dteDisplay,
-        description: "Put wall from volume data",
+        description:
+          dataSource === "majors"
+            ? "Put wall from majors API"
+            : "Put wall from volume data",
+        source: dataSource,
       });
     }
 
     if (callWallOi && callWallOi !== 0) {
+      console.log(`➕ adding call_wall_oi ${callWallOi}`);
       levels.push({
         strike: Math.round(callWallOi * 100) / 100,
         importance: 8,
         type: "call_wall_oi",
-        label: "Call Wall (OI)",
+        label:
+          dataSource === "majors" ? "Call Wall (OI) - API" : "Call Wall OI",
         dte: dteDisplay,
-        description: "Call wall from open interest",
+        description:
+          dataSource === "majors"
+            ? "Call wall OI from majors API"
+            : "Call wall from open interest",
+        source: dataSource,
       });
     }
 
     if (putWallOi && putWallOi !== 0) {
+      console.log(`➕ adding put_wall_oi ${putWallOi}`);
       levels.push({
         strike: Math.round(putWallOi * 100) / 100,
         importance: 8,
         type: "put_wall_oi",
-        label: "Put Wall (OI)",
+        label:
+          dataSource === "majors" ? "Call Wall (Vol) - API" : "Call Wall Vol",
         dte: dteDisplay,
-        description: "Put wall from open interest",
+        description:
+          dataSource === "majors"
+            ? "Put wall OI from majors API"
+            : "Put wall from open interest",
+        source: dataSource,
       });
     }
 
@@ -331,6 +409,7 @@ function App() {
         description: `Secondary call resistance - ${Math.round(
           cw.abs_gex
         )} GEX`,
+        source: "classic",
       });
     });
 
@@ -342,6 +421,7 @@ function App() {
         label: `Put Wall #${idx + 2}`,
         dte: dteDisplay,
         description: `Secondary put support - ${Math.round(pw.abs_gex)} GEX`,
+        source: "classic",
       });
     });
 
@@ -366,6 +446,7 @@ function App() {
         label: "Max Pain",
         dte: dteDisplay,
         description: "Expiration target - min GEX",
+        source: "classic",
       });
     }
 
@@ -396,19 +477,86 @@ function App() {
         label: strikeType,
         dte: dteDisplay,
         description: `${strikeDesc} - ${Math.round(s.total_gex)} GEX`,
+        source: "classic",
       });
     });
 
-    // Remove duplicates and sort by importance
-    const uniqueLevels = [];
-    const seenStrikes = new Set();
-    levels.forEach((level) => {
-      if (!seenStrikes.has(level.strike)) {
-        seenStrikes.add(level.strike);
-        uniqueLevels.push(level);
+    // DEBUG: show summary of classic/majors levels before deduplication
+    try {
+      const classicPreview = levels.filter((l) => l.source === "classic");
+      const majorsPreview = levels.filter((l) => l.source === "majors");
+      if (classicPreview.length > 0) {
+        console.log(`📋 classic levels (${sourceTicker}):`, classicPreview);
+        // Also show grouped by strike to highlight duplicates
+        const grouped = classicPreview.reduce((acc, lv) => {
+          const k = String(lv.strike);
+          if (!acc[k]) acc[k] = [];
+          acc[k].push(lv);
+          return acc;
+        }, {});
+        console.log(
+          `📊 classic levels grouped by strike (${sourceTicker}):`,
+          grouped
+        );
+      }
+      if (majorsPreview.length > 0) {
+        console.log(`📋 majors levels (${sourceTicker}):`, majorsPreview);
+      }
+    } catch (e) {
+      console.error("Error logging level previews:", e);
+    }
+
+    // Keep all levels provided (no deduplication) so both `classic` and `majors`
+    // entries are available initially. Sort by importance for display then
+    // merge entries that share the same strike into a single line with
+    // combined labels/types/descriptions/sources.
+    const uniqueLevels = levels.slice();
+    uniqueLevels.sort((a, b) => b.importance - a.importance);
+
+    // Merge same-strike entries into one level with combined fields
+    const mergedByStrike = new Map();
+    uniqueLevels.forEach((lv) => {
+      const key = String(lv.strike);
+      if (!mergedByStrike.has(key)) {
+        mergedByStrike.set(key, {
+          strike: lv.strike,
+          importance: lv.importance || 0,
+          // dominantType will determine display color (type of most important level)
+          dominantType: lv.type,
+          types: new Set([lv.type]),
+          labels: new Set([lv.label]),
+          descriptions: new Set([lv.description || ""]),
+          dte: lv.dte,
+          sources: new Set([lv.source || "classic"]),
+        });
+      } else {
+        const ex = mergedByStrike.get(key);
+        // if incoming has higher importance, update dominantType
+        if ((lv.importance || 0) > (ex.importance || 0)) {
+          ex.importance = lv.importance || 0;
+          ex.dominantType = lv.type;
+        } else {
+          ex.importance = Math.max(ex.importance, lv.importance || 0);
+        }
+        ex.types.add(lv.type);
+        ex.labels.add(lv.label);
+        if (lv.description) ex.descriptions.add(lv.description);
+        ex.sources.add(lv.source || "classic");
       }
     });
-    uniqueLevels.sort((a, b) => b.importance - a.importance);
+
+    const finalLevels = Array.from(mergedByStrike.values()).map((m) => ({
+      strike: m.strike,
+      importance: m.importance,
+      // use dominantType for display/color, combine all labels into title
+      type: m.dominantType || Array.from(m.types).join("/"),
+      label: Array.from(m.labels).join(" / "),
+      dte: m.dte,
+      description: Array.from(m.descriptions).filter(Boolean).join(" | "),
+      source: Array.from(m.sources).join("/"),
+    }));
+
+    finalLevels.sort((a, b) => b.importance - a.importance);
 
     const metadata = {
       data_timestamp: chainData.timestamp || 0,
@@ -423,6 +571,16 @@ function App() {
       put_sup_all: advanced.put_sup_all,
     };
 
+    // DEBUG: log final unique levels returned for visibility
+    try {
+      console.log(
+        `✅ final levels for ${sourceTicker} (${dteDisplay}):`,
+        uniqueLevels
+      );
+    } catch (e) {
+      console.error("Error logging final levels:", e);
+    }
+
     return { levels: uniqueLevels, metadata };
   };
 
@@ -430,7 +588,7 @@ function App() {
   const levelsToCSV = (levels) => {
     if (!levels || levels.length === 0) return "";
 
-    const headers = "strike,importance,type,label,dte,description";
+    const headers = "strike,importance,type,label,dte,description,source";
     const rows = levels.map((level) => {
       // Nettoyer la description
       const cleanDesc = (level.description || "")
@@ -444,11 +602,13 @@ function App() {
         .replace(/\\/g, "") // Supprimer backslashes
         .trim();
 
-      return `${level.strike},${level.importance},${level.type},${level.label},${level.dte},${cleanDesc}`;
+      return `${level.strike},${level.importance},${level.type},${
+        level.label
+      },${level.dte},${cleanDesc},${level.source || "classic"}`;
     });
 
-    // UN SEUL backslash pour Pine Script !
-    return headers + "\\n" + rows.join("\\n");
+    // DEUX backslashes pour Pine Script (devient \n dans la string)
+    return headers + "\\\\n" + rows.join("\\\\n");
   };
 
   // Convert metadata to Pine Script string
@@ -520,6 +680,10 @@ else if detected_ticker == "NQ"
 // ==================== PARAMÈTRES ====================
 string selected_dte = input.string("0DTE", "📅 DTE Period", options=["0DTE", "1DTE", "FULL"], group="🎯 Settings", tooltip="Days To Expiration")
 
+// ==================== FILTRES PAR SOURCE DE DONNÉES ====================
+bool show_classic_levels = input.bool(true, "📊 Niveaux Classic (Calculés)", group="🔌 Data Sources", tooltip="Afficher les niveaux calculés depuis la route /classic")
+bool show_majors_levels = input.bool(true, "🎯 Niveaux Majors (API)", group="🔌 Data Sources", tooltip="Afficher les niveaux directs depuis la route /majors")
+
 // ==================== FILTRES PAR IMPORTANCE ====================
 bool show_imp_10 = input.bool(true, "Importance 10 (Major Walls/Volatility Trigger)", group="🎯 Importance Filters")
 bool show_imp_9 = input.bool(true, "Importance 9 (High Vol Levels, 0DTE Walls)", group="🎯 Importance Filters")
@@ -553,6 +717,7 @@ bool show_descriptions = input.bool(false, "Show Descriptions", group="🏷️ L
 string label_size = input.string("Small", "Label Size", options=["Tiny", "Small", "Normal", "Large"], group="🏷️ Labels")
 bool use_distance_filter = input.bool(false, "Filter Labels Near Price", group="🏷️ Labels", tooltip="Hide labels too close to current price")
 float label_min_distance_pct = input.float(0.3, "Min Distance from Price (%)", minval=0, maxval=5, step=0.1, group="🏷️ Labels")
+float price_tolerance = input.float(0.25, "Regroupement prix (points)", minval=0.1, maxval=5, step=0.1, group="🏷️ Labels", tooltip="Tolérance pour fusionner les niveaux proches")
 
 // ==================== METADATA DISPLAY ====================
 bool show_metadata = input.bool(false, "Show Market Info Table", group="📊 Metadata", tooltip="Display GEX metadata table")
@@ -564,11 +729,21 @@ bool show_definitions = input.bool(false, "Afficher les Définitions", group="�
 var array<line> all_lines = array.new<line>()
 var array<label> all_labels = array.new<label>()
 
+// ==================== STRUCTURE POUR REGROUPER LES NIVEAUX ====================
+type LevelData
+    float price
+    array<string> labels
+    array<string> descriptions
+    string level_type
+    int importance
+    color level_color
+    string source
+
 // ==================== FONCTIONS ====================
 get_label_size(string size) =>
     size == "Tiny" ? size.tiny : size == "Small" ? size.small : size == "Normal" ? size.normal : size.large
 
-should_show_level(int importance, string level_type) =>
+should_show_level(int importance, string level_type, string source) =>
     bool show_importance = (importance == 10 and show_imp_10) or (importance == 9 and show_imp_9) or (importance == 8 and show_imp_8) or (importance == 7 and show_imp_7)
     
     bool show_type = false
@@ -589,7 +764,9 @@ should_show_level(int importance, string level_type) =>
     else if str.contains(level_type, "vol_trigger")
         show_type := show_vol_triggers
     
-    show_importance and show_type
+    bool show_source = (source == "classic" and show_classic_levels) or (source == "majors" and show_majors_levels)
+    
+    show_importance and show_type and show_source
 
 get_level_color(string level_type) =>
     color result = color_strikes
@@ -613,73 +790,140 @@ get_level_color(string level_type) =>
 
 clear_all_objects() =>
     if array.size(all_lines) > 0
-        for i = 0 to array.size(all_lines) - 1
+        for i = 0 to (array.size(all_lines) - 1)
             line.delete(array.get(all_lines, i))
         array.clear(all_lines)
     if array.size(all_labels) > 0
-        for i = 0 to array.size(all_labels) - 1
-            label.delete(array.get(all_labels, i))
+        for j = 0 to (array.size(all_labels) - 1)
+            label.delete(array.get(all_labels, j))
         array.clear(all_labels)
 
+// ==================== NOUVELLE FONCTION POUR REGROUPER LES NIVEAUX ====================
+find_existing_level(array<LevelData> levels, float price, float tolerance) =>
+    int result = -1
+    if array.size(levels) > 0
+        for i = 0 to array.size(levels) - 1
+            LevelData level = array.get(levels, i)
+            if math.abs(level.price - price) <= tolerance
+                result := i
+                break
+    result
+
 process_csv(string csv_data) =>
+    var array<LevelData> grouped_levels = array.new<LevelData>()
+    
     if bar_index == last_bar_index
-        lines_array = str.split(csv_data, "\\n")  // 2 backslashes (échappement Pine)
+        array.clear(grouped_levels)
+        
+        lines_array = str.split(csv_data, "\\\\n")
         int total_lines = array.size(lines_array)
-        for i = 1 to total_lines - 1
-            if i < total_lines
-                string line_str = array.get(lines_array, i)
-                if str.length(line_str) > 10 and not str.contains(line_str, "strike,importance")
-                    fields = str.split(line_str, ",")
-                    int num_fields = array.size(fields)
-                    if num_fields >= 6
-                        string field0 = array.get(fields, 0)
-                        string field1 = array.get(fields, 1)
-                        if str.length(field0) > 0 and str.length(field1) > 0
-                            float strike_price_raw = str.tonumber(field0)
-                            int importance = int(str.tonumber(field1))
-                            if not na(strike_price_raw) and not na(importance) and importance >= 7 and importance <= 10
-                                float strike_price = needs_conversion ? strike_price_raw * conversion_multiplier : strike_price_raw
-                                
-                                string level_type = array.get(fields, 2)
-                                string label_text = array.get(fields, 3)
-                                string description = num_fields >= 6 ? array.get(fields, 5) : ""
-                                
-                                if should_show_level(importance, level_type)
-                                    color level_color = get_level_color(level_type)
-                                    line new_line = line.new(x1=bar_index[500], y1=strike_price, x2=bar_index, y2=strike_price, color=level_color, width=1, style=line.style_solid, extend=extend.right)
-                                    array.push(all_lines, new_line)
-                                    
-                                    if show_labels
-                                        bool show_this_label = true
-                                        if use_distance_filter
-                                            float price_distance = math.abs(close - strike_price)
-                                            float min_distance = close * (label_min_distance_pct / 100)
-                                            show_this_label := price_distance > min_distance
+        int max_index = total_lines - 1
+
+        if max_index > 0
+            for idx = 1 to max_index
+                if idx < total_lines
+                    string line_str = array.get(lines_array, idx)
+                    if str.length(line_str) > 10 and not str.contains(line_str, "strike,importance")
+                        fields = str.split(line_str, ",")
+                        int num_fields = array.size(fields)
+                        if num_fields >= 6
+                            string field0 = array.get(fields, 0)
+                            string field1 = array.get(fields, 1)
+                            if str.length(field0) > 0 and str.length(field1) > 0
+                                float strike_price_raw = str.tonumber(field0)
+                                int importance = int(str.tonumber(field1))
+                                if not na(strike_price_raw) and not na(importance) and importance >= 7 and importance <= 10
+                                    float strike_price = needs_conversion ? strike_price_raw * conversion_multiplier : strike_price_raw
+
+                                    string level_type = array.get(fields, 2)
+                                    string label_text = array.get(fields, 3)
+                                    string description = num_fields >= 6 ? array.get(fields, 5) : ""
+                                    string source = num_fields >= 7 ? array.get(fields, 6) : "classic"
+
+                                    if should_show_level(importance, level_type, source)
+                                        // Chercher si un niveau existe déjà à ce prix
+                                        int existing_idx = find_existing_level(grouped_levels, strike_price, price_tolerance)
                                         
-                                        if show_this_label
-                                            string final_label = label_text + " " + str.tostring(strike_price, "#.##")
-                                            if show_descriptions and str.length(description) > 0
-                                                final_label := final_label + "\\n" + description  // 2 backslashes
-                                            
-                                            label new_label = label.new(x=bar_index, y=strike_price, text=final_label, color=color.new(color.white, 100), textcolor=level_color, style=label.style_none, size=get_label_size(label_size))
-                                            array.push(all_labels, new_label)
+                                        if existing_idx >= 0
+                                            // Fusionner avec le niveau existant
+                                            LevelData existing = array.get(grouped_levels, existing_idx)
+                                            array.push(existing.labels, label_text)
+                                            if str.length(description) > 0
+                                                array.push(existing.descriptions, description)
+                                            // Prioriser l'importance la plus élevée
+                                            if importance > existing.importance
+                                                existing.importance := importance
+                                                existing.level_type := level_type
+                                                existing.level_color := get_level_color(level_type)
+                                        else
+                                            // Créer un nouveau niveau
+                                            LevelData new_level = LevelData.new()
+                                            new_level.price := strike_price
+                                            new_level.labels := array.new<string>()
+                                            new_level.descriptions := array.new<string>()
+                                            array.push(new_level.labels, label_text)
+                                            if str.length(description) > 0
+                                                array.push(new_level.descriptions, description)
+                                            new_level.level_type := level_type
+                                            new_level.importance := importance
+                                            new_level.level_color := get_level_color(level_type)
+                                            new_level.source := source
+                                            array.push(grouped_levels, new_level)
+        
+        // Dessiner les niveaux regroupés
+        if array.size(grouped_levels) > 0
+            for i = 0 to array.size(grouped_levels) - 1
+                LevelData level = array.get(grouped_levels, i)
+                
+                // Créer la ligne
+                line new_line = line.new(x1=bar_index[500], y1=level.price, x2=bar_index, y2=level.price, color=level.level_color, width=1, style=line.style_solid, extend=extend.both)
+                array.push(all_lines, new_line)
+                
+                // Créer le label regroupé
+                if show_labels
+                    bool show_this_label = true
+                    if use_distance_filter
+                        float price_distance = math.abs(close - level.price)
+                        float min_distance = close * (label_min_distance_pct / 100)
+                        show_this_label := price_distance > min_distance
+
+                    if show_this_label
+                        // Construire le texte du label avec tous les labels fusionnés
+                        string combined_labels = ""
+                        int num_labels = array.size(level.labels)
+                        if num_labels > 0
+                            for j = 0 to num_labels - 1
+                                if j > 0
+                                    combined_labels := combined_labels + " + "
+                                combined_labels := combined_labels + array.get(level.labels, j)
+                        
+                        string final_label = combined_labels + " " + str.tostring(level.price, "#.##")
+                        
+                        // Ajouter les descriptions si activé
+                        if show_descriptions and array.size(level.descriptions) > 0
+                            for k = 0 to array.size(level.descriptions) - 1
+                                final_label := final_label + "\\n" + array.get(level.descriptions, k)
+
+                        label new_label = label.new(x=bar_index, y=level.price, text=final_label, color=color.new(color.white, 100), textcolor=level.level_color, style=label.style_none, size=get_label_size(label_size))
+                        array.push(all_labels, new_label)
 
 // ==================== EXÉCUTION ====================
 if barstate.islast
     clear_all_objects()
-    
-    string csv_active = ""
-    string meta_active = ""
-    
-    if detected_ticker == "ES"
-        csv_active := selected_dte == "0DTE" ? es_csv_zero : selected_dte == "1DTE" ? es_csv_one : es_csv_full
-        meta_active := selected_dte == "0DTE" ? es_meta_zero : selected_dte == "1DTE" ? es_meta_one : es_meta_full
-    else
-        csv_active := selected_dte == "0DTE" ? nq_csv_zero : selected_dte == "1DTE" ? nq_csv_one : nq_csv_full
-        meta_active := selected_dte == "0DTE" ? nq_meta_zero : selected_dte == "1DTE" ? nq_meta_one : nq_meta_full
-    
-    process_csv(csv_active)
-    
+
+string csv_active = ""
+string meta_active = ""
+
+if detected_ticker == "ES"
+    csv_active := selected_dte == "0DTE" ? es_csv_zero : selected_dte == "1DTE" ? es_csv_one : es_csv_full
+    meta_active := selected_dte == "0DTE" ? es_meta_zero : selected_dte == "1DTE" ? es_meta_one : es_meta_full
+else
+    csv_active := selected_dte == "0DTE" ? nq_csv_zero : selected_dte == "1DTE" ? nq_csv_one : nq_csv_full
+    meta_active := selected_dte == "0DTE" ? nq_meta_zero : selected_dte == "1DTE" ? nq_meta_one : nq_meta_full
+
+process_csv(csv_active)
+
+if barstate.islast
     if show_metadata and str.length(meta_active) > 0
         var table meta_tbl = table.new(position.top_right, 2, 11, bgcolor=color.new(color.gray, 85), border_width=1, border_color=color.new(color.white, 50))
         
@@ -690,8 +934,8 @@ if barstate.islast
         table.cell(meta_tbl, 1, 0, "", text_color=color.white, text_size=size.small, bgcolor=color.new(color.blue, 70))
         
         int row = 1
-        for part in parts
-            kv = str.split(part, ":")
+        for meta_part in parts
+            kv = str.split(meta_part, ":")
             if array.size(kv) == 2
                 key = array.get(kv, 0)
                 val = array.get(kv, 1)
@@ -737,7 +981,9 @@ if barstate.islast
         table.cell(def_tbl, 0, 10, "Gamma Regime", text_color=color.white, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
         table.cell(def_tbl, 1, 10, "Pos: MM stabilisent (achètent bas/vendent haut). Neg: MM amplifient (achètent haut/vendent bas)", text_color=color.silver, text_size=size.tiny, bgcolor=color.new(color.gray, 90))
 
-plot(close, title="Price", display=display.none)`;
+plot(close, title="Price", display=display.none)
+
+`;
   };
 
   // Main data fetching effect
@@ -780,6 +1026,23 @@ plot(close, title="Price", display=display.none)`;
                 majorsData,
                 dteApiName
               );
+
+              // DEBUG: log any levels coming from the majors source
+              if (majorsData) {
+                const majorsLevels = levels.filter(
+                  (l) => l.source === "majors"
+                );
+                if (majorsLevels && majorsLevels.length > 0) {
+                  console.log(
+                    `🧾 Majors levels for ${sourceTicker}/${dteApiName}:`,
+                    majorsLevels
+                  );
+                } else {
+                  console.log(
+                    `ℹ️ No majors levels present in generated levels for ${sourceTicker}/${dteApiName}`
+                  );
+                }
+              }
 
               const csvKey = `${target}_${dteKey}`;
               csvDataDict[csvKey] = levelsToCSV(levels);
