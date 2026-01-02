@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import "./App.css";
+import IndicatorSummary from "./IndicatorSummary";
 
 // Configuration API GexBot
 const GEXBOT_API_KEY =
@@ -39,7 +40,9 @@ function App() {
   });
   const [pineCode, setPineCode] = useState("");
   const [lastUpdate, setLastUpdate] = useState("");
+  const [metadataMap, setMetadataMap] = useState({});
   const featuresRef = useRef(null);
+  const initializedRef = useRef(false);
 
   // Fetch GEX data from API
   const fetchGexData = async (ticker, aggregation) => {
@@ -207,7 +210,7 @@ function App() {
         strike: Math.round(volatilityTrigger * 100) / 100,
         importance: 10,
         type: "zero_gamma",
-        label: "Zero Gamma",
+        label: "Zero Gamma - Vol Trigger",
         dte: dteDisplay,
         description: `Vol trigger - ${regime}`,
         source: "classic",
@@ -747,7 +750,8 @@ should_show_level(int importance, string level_type, string source) =>
     bool show_importance = (importance == 10 and show_imp_10) or (importance == 9 and show_imp_9) or (importance == 8 and show_imp_8) or (importance == 7 and show_imp_7)
     
     bool show_type = false
-    if str.contains(level_type, "volatility_trigger")
+    if str.contains(level_type, "zero_gamma") or str.contains(level_type, "volatility_trigger")
+        show_type := show_volatility_trigger
         show_type := show_volatility_trigger
     else if str.contains(level_type, "major_call_wall") or str.contains(level_type, "major_put_wall")
         show_type := show_major_walls
@@ -770,7 +774,7 @@ should_show_level(int importance, string level_type, string source) =>
 
 get_level_color(string level_type) =>
     color result = color_strikes
-    if str.contains(level_type, "volatility_trigger")
+    if str.contains(level_type, "zero_gamma") or str.contains(level_type, "volatility_trigger")
         result := color_volatility_trigger
     else if str.contains(level_type, "major_call_wall")
         result := color_major_call_wall
@@ -787,6 +791,7 @@ get_level_color(string level_type) =>
     else if str.contains(level_type, "vol_trigger")
         result := color_vol_trigger
     result
+
 
 clear_all_objects() =>
     if array.size(all_lines) > 0
@@ -989,8 +994,14 @@ plot(close, title="Price", display=display.none)
   // Main data fetching effect
   useEffect(() => {
     const fetchAllData = async () => {
-      setLoading(true);
-      setError(null);
+      // Show full-page loader only on the initial load. For periodic
+      // refreshes we keep the UI visible and just update data in-place.
+      if (!initializedRef.current) {
+        setLoading(true);
+        setError(null);
+      } else {
+        setError(null);
+      }
 
       console.log("🚀 Fetching GEX data from API...");
 
@@ -1061,6 +1072,7 @@ plot(close, title="Price", display=display.none)
         // Generate Pine Script
         const generatedPineCode = generatePineScript(csvDataDict, metadataDict);
         setPineCode(generatedPineCode);
+        setMetadataMap(metadataDict);
         setGexData(displayData);
 
         // Set last update timestamp
@@ -1068,18 +1080,26 @@ plot(close, title="Price", display=display.none)
         setLastUpdate(
           now.toLocaleString("fr-FR", {
             dateStyle: "long",
-            timeStyle: "short",
+            // Use 'medium' timeStyle to include seconds in the formatted time
+            timeStyle: "medium",
             timeZone: "Europe/Paris",
           })
         );
+
+        // Mark that initial load completed so subsequent interval runs
+        // won't display the full-page loader.
+        initializedRef.current = true;
 
         console.log("✅ Pine Script generated successfully!");
         setLoading(false);
       } catch (err) {
         console.error("❌ Error fetching GEX data:", err);
-        setError(
-          "Erreur lors du chargement des données GEX. Vérifiez votre clé API."
-        );
+        // Only show the full error overlay if the initial load fails.
+        if (!initializedRef.current) {
+          setError(
+            "Erreur lors du chargement des données GEX. Vérifiez votre clé API."
+          );
+        }
         setLoading(false);
       }
     };
@@ -1087,7 +1107,8 @@ plot(close, title="Price", display=display.none)
     fetchAllData();
 
     // Auto-refresh every 5 minutes
-    const interval = setInterval(fetchAllData, 5 * 60 * 1000);
+    // const interval = setInterval(fetchAllData, 5 * 60 * 1000);
+    const interval = setInterval(fetchAllData, 5 * 1000);
 
     return () => clearInterval(interval);
   }, []);
@@ -1284,6 +1305,8 @@ plot(close, title="Price", display=display.none)
             </div>
           </div>
         </section>
+
+        <IndicatorSummary metadataMap={metadataMap} lastUpdate={lastUpdate} />
 
         <section className="gex-levels-section" id="levels">
           <h2>📊 Niveaux GEX Actuels</h2>
