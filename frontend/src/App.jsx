@@ -24,6 +24,11 @@ const TICKERS = {
     description: "NDX GEX for NQ Futures",
     multiplier: 1.00842,
   },
+  QQQ: {
+    target: "NQ",
+    description: "QQQ GEX for NQ Futures",
+    multiplier: 40.0, // QQQ est environ 1/40ème du NDX/NQ
+  },
 };
 
 const DTE_PERIODS = { zero: "ZERO", one: "ONE", full: "FULL" };
@@ -634,6 +639,7 @@ function App() {
   const generatePineScript = (csvDataDict, metadataDict) => {
     const spxMultiplier = TICKERS.SPX.multiplier;
     const ndxMultiplier = TICKERS.NDX.multiplier;
+    const qqqMultiplier = TICKERS.QQQ.multiplier;
 
     return `//@version=6
 indicator("GEX Professional Levels", overlay=true, max_lines_count=500, max_labels_count=500)
@@ -645,6 +651,9 @@ string es_csv_full = "${csvDataDict.es_full || ""}"
 string nq_csv_zero = "${csvDataDict.nq_zero || ""}"
 string nq_csv_one = "${csvDataDict.nq_one || ""}"
 string nq_csv_full = "${csvDataDict.nq_full || ""}"
+string qqq_csv_zero = "${csvDataDict.qqq_zero || ""}"
+string qqq_csv_one = "${csvDataDict.qqq_one || ""}"
+string qqq_csv_full = "${csvDataDict.qqq_full || ""}"
 
 // ==================== METADATA ====================
 string es_meta_zero = "${metadataDict.es_zero || ""}"
@@ -653,6 +662,9 @@ string es_meta_full = "${metadataDict.es_full || ""}"
 string nq_meta_zero = "${metadataDict.nq_zero || ""}"
 string nq_meta_one = "${metadataDict.nq_one || ""}"
 string nq_meta_full = "${metadataDict.nq_full || ""}"
+string qqq_meta_zero = "${metadataDict.qqq_zero || ""}"
+string qqq_meta_one = "${metadataDict.qqq_one || ""}"
+string qqq_meta_full = "${metadataDict.qqq_full || ""}"
 
 // ==================== AUTO-DETECTION TICKER ====================
 string detected_ticker = "ES"
@@ -661,9 +673,14 @@ if str.contains(syminfo.ticker, "NQ") or str.contains(syminfo.ticker, "NDX") or 
 else if str.contains(syminfo.ticker, "ES") or str.contains(syminfo.ticker, "SPX") or str.contains(syminfo.ticker, "SP500")
     detected_ticker := "ES"
 
-// ==================== MULTIPLICATEURS FIXES ====================
-float SPX_MULTIPLIER = ${spxMultiplier}
-float NDX_MULTIPLIER = ${ndxMultiplier}
+// ==================== MULTIPLICATEURS MODIFIABLES ====================
+float SPX_MULTIPLIER = input.float(${spxMultiplier}, "🔢 Multiplicateur SPX", minval=0.5, maxval=2.0, step=0.00001, group="⚙️ Multiplicateurs", tooltip="Ajustement de conversion SPX vers ES (défaut: ${spxMultiplier})")
+float NDX_MULTIPLIER = input.float(${ndxMultiplier}, "🔢 Multiplicateur NDX", minval=0.5, maxval=2.0, step=0.00001, group="⚙️ Multiplicateurs", tooltip="Ajustement de conversion NDX vers NQ (défaut: ${ndxMultiplier})")
+float QQQ_MULTIPLIER = input.float(${qqqMultiplier}, "🔢 Multiplicateur QQQ", minval=1.0, maxval=100.0, step=0.1, group="⚙️ Multiplicateurs", tooltip="Conversion QQQ vers NQ - QQQ est ~1/40ème du NQ (défaut: ${qqqMultiplier})")
+
+
+// ==================== SÉLECTEUR DE SOURCE D'OPTIONS ====================
+string nq_options_source = input.string("NDX", "🎯 Source Options NQ", options=["NDX", "QQQ"], group="🎯 Settings", tooltip="Choisir la source des données d'options pour NQ: NDX (indice) ou QQQ (ETF)")
 
 float conversion_multiplier = 1.0
 bool needs_conversion = false
@@ -674,7 +691,10 @@ if detected_ticker == "ES"
         needs_conversion := true
 else if detected_ticker == "NQ"
     if str.contains(syminfo.ticker, "NQ") and not str.contains(syminfo.ticker, "NDX")
-        conversion_multiplier := NDX_MULTIPLIER
+        if nq_options_source == "NDX"
+            conversion_multiplier := NDX_MULTIPLIER
+        else
+            conversion_multiplier := QQQ_MULTIPLIER
         needs_conversion := true
 
 // ==================== PARAMÈTRES ====================
@@ -918,8 +938,13 @@ if detected_ticker == "ES"
     csv_active := selected_dte == "0DTE" ? es_csv_zero : selected_dte == "1DTE" ? es_csv_one : es_csv_full
     meta_active := selected_dte == "0DTE" ? es_meta_zero : selected_dte == "1DTE" ? es_meta_one : es_meta_full
 else
-    csv_active := selected_dte == "0DTE" ? nq_csv_zero : selected_dte == "1DTE" ? nq_csv_one : nq_csv_full
-    meta_active := selected_dte == "0DTE" ? nq_meta_zero : selected_dte == "1DTE" ? nq_meta_one : nq_meta_full
+    // Utiliser NDX ou QQQ selon le choix de l'utilisateur
+    if nq_options_source == "NDX"
+        csv_active := selected_dte == "0DTE" ? nq_csv_zero : selected_dte == "1DTE" ? nq_csv_one : nq_csv_full
+        meta_active := selected_dte == "0DTE" ? nq_meta_zero : selected_dte == "1DTE" ? nq_meta_one : nq_meta_full
+    else
+        csv_active := selected_dte == "0DTE" ? qqq_csv_zero : selected_dte == "1DTE" ? qqq_csv_one : qqq_csv_full
+        meta_active := selected_dte == "0DTE" ? qqq_meta_zero : selected_dte == "1DTE" ? qqq_meta_one : qqq_meta_full
 
 process_csv(csv_active)
 
@@ -1000,6 +1025,7 @@ plot(close, title="Price", display=display.none)
         const displayData = {
           es: { zero: [], one: [], full: [] },
           nq: { zero: [], one: [], full: [] },
+          qqq: { zero: [], one: [], full: [] }, // Ajout QQQ
         };
 
         // Fetch data for all tickers and DTE periods
@@ -1009,13 +1035,12 @@ plot(close, title="Price", display=display.none)
           for (const [dteKey, dteApiName] of Object.entries(DTE_PERIODS)) {
             console.log(`📡 Fetching ${sourceTicker}/${dteApiName}...`);
 
-            // UTILISE sourceTicker (SPX/NDX) au lieu de target (es/nq)
             const chainData = await fetchGexData(
-              sourceTicker, // ← CHANGEMENT ICI : "SPX" ou "NDX"
+              sourceTicker,
               dteApiName.toLowerCase()
             );
             const majorsData = await fetchGexMajors(
-              sourceTicker, // ← ET ICI AUSSI
+              sourceTicker,
               dteApiName.toLowerCase()
             );
 
@@ -1027,29 +1052,21 @@ plot(close, title="Price", display=display.none)
                 dteApiName
               );
 
-              // DEBUG: log any levels coming from the majors source
-              if (majorsData) {
-                const majorsLevels = levels.filter(
-                  (l) => l.source === "majors"
-                );
-                if (majorsLevels && majorsLevels.length > 0) {
-                  console.log(
-                    `🧾 Majors levels for ${sourceTicker}/${dteApiName}:`,
-                    majorsLevels
-                  );
-                } else {
-                  console.log(
-                    `ℹ️ No majors levels present in generated levels for ${sourceTicker}/${dteApiName}`
-                  );
-                }
-              }
+              // Pour QQQ, utiliser "qqq" comme clé au lieu de "nq"
+              const csvKey =
+                sourceTicker === "QQQ"
+                  ? `qqq_${dteKey}`
+                  : `${target}_${dteKey}`;
 
-              const csvKey = `${target}_${dteKey}`;
               csvDataDict[csvKey] = levelsToCSV(levels);
               metadataDict[csvKey] = metadataToString(metadata);
 
               // Store for display
-              displayData[target][dteKey] = levels;
+              if (sourceTicker === "QQQ") {
+                displayData.qqq[dteKey] = levels;
+              } else {
+                displayData[target][dteKey] = levels;
+              }
 
               console.log(
                 `✅ ${sourceTicker}/${dteApiName} - ${levels.length} levels generated`
@@ -1293,12 +1310,12 @@ plot(close, title="Price", display=display.none)
           </p>
 
           <div className="gex-container">
+            {/* ES - inchangé */}
             <div className="gex-instrument">
               <h3>
                 <span className="instrument-icon">📈</span>
                 ES — S&P 500 Futures
               </h3>
-
               <div className="gex-tabs">
                 <GexTable title="0DTE" data={gexData.es.zero} color="blue" />
                 <GexTable title="1DTE" data={gexData.es.one} color="purple" />
@@ -1306,16 +1323,29 @@ plot(close, title="Price", display=display.none)
               </div>
             </div>
 
+            {/* NQ - inchangé */}
             <div className="gex-instrument">
               <h3>
                 <span className="instrument-icon">💹</span>
-                NQ — Nasdaq 100 Futures
+                NQ — Nasdaq 100 Futures (NDX)
               </h3>
-
               <div className="gex-tabs">
                 <GexTable title="0DTE" data={gexData.nq.zero} color="blue" />
                 <GexTable title="1DTE" data={gexData.nq.one} color="purple" />
                 <GexTable title="Full" data={gexData.nq.full} color="green" />
+              </div>
+            </div>
+
+            {/* NOUVEAU : QQQ */}
+            <div className="gex-instrument">
+              <h3>
+                <span className="instrument-icon">🔷</span>
+                NQ — Nasdaq 100 Futures (QQQ)
+              </h3>
+              <div className="gex-tabs">
+                <GexTable title="0DTE" data={gexData.qqq.zero} color="blue" />
+                <GexTable title="1DTE" data={gexData.qqq.one} color="purple" />
+                <GexTable title="Full" data={gexData.qqq.full} color="green" />
               </div>
             </div>
           </div>
