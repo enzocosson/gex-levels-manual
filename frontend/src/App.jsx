@@ -678,24 +678,46 @@ float SPX_MULTIPLIER = input.float(${spxMultiplier}, "🔢 Multiplicateur SPX", 
 float NDX_MULTIPLIER = input.float(${ndxMultiplier}, "🔢 Multiplicateur NDX", minval=0.5, maxval=2.0, step=0.00001, group="⚙️ Multiplicateurs", tooltip="Ajustement de conversion NDX vers NQ (défaut: ${ndxMultiplier})")
 float QQQ_MULTIPLIER = input.float(${qqqMultiplier}, "🔢 Multiplicateur QQQ", minval=1.0, maxval=100.0, step=0.1, group="⚙️ Multiplicateurs", tooltip="Conversion QQQ vers NQ - QQQ est ~1/40ème du NQ (défaut: ${qqqMultiplier})")
 
+// ==================== MODE DE CONVERSION DYNAMIQUE ====================
+bool use_dynamic_ratio = input.bool(false, "🔄 Utiliser Ratio Dynamique", group="⚙️ Multiplicateurs", tooltip="Si activé, calcule le ratio en temps réel depuis les prix de marché au lieu d'utiliser les multiplicateurs fixes")
 
 // ==================== SÉLECTEUR DE SOURCE D'OPTIONS ====================
 string nq_options_source = input.string("NDX", "🎯 Source Options NQ", options=["NDX", "QQQ"], group="🎯 Settings", tooltip="Choisir la source des données d'options pour NQ: NDX (indice) ou QQQ (ETF)")
 
+// ==================== RÉCUPÉRATION DES PRIX EN TEMPS RÉEL POUR MODE DYNAMIQUE ====================
+float current_spx = request.security("SPX", timeframe.period, close)
+float current_ndx = request.security("NDX", timeframe.period, close)
+float current_qqq = request.security("QQQ", timeframe.period, close)
+
+// ==================== CALCUL DE LA CONVERSION ====================
 float conversion_multiplier = 1.0
 bool needs_conversion = false
 
 if detected_ticker == "ES"
     if str.contains(syminfo.ticker, "ES") and not str.contains(syminfo.ticker, "SPX")
-        conversion_multiplier := SPX_MULTIPLIER
+        if use_dynamic_ratio
+            // Mode dynamique: ratio calculé depuis les prix actuels
+            conversion_multiplier := close / current_spx
+        else
+            // Mode fixe: multiplicateur défini par l'utilisateur
+            conversion_multiplier := SPX_MULTIPLIER
         needs_conversion := true
 else if detected_ticker == "NQ"
-    if str.contains(syminfo.ticker, "NQ") and not str.contains(syminfo.ticker, "NDX")
-        if nq_options_source == "NDX"
-            conversion_multiplier := NDX_MULTIPLIER
+    if str.contains(syminfo.ticker, "NQ") and not str.contains(syminfo.ticker, "NDX") and not str.contains(syminfo.ticker, "QQQ")
+        if use_dynamic_ratio
+            // Mode dynamique: ratio calculé depuis les prix actuels
+            if nq_options_source == "NDX"
+                conversion_multiplier := close / current_ndx
+            else
+                conversion_multiplier := close / current_qqq
         else
-            conversion_multiplier := QQQ_MULTIPLIER
+            // Mode fixe: multiplicateur défini par l'utilisateur
+            if nq_options_source == "NDX"
+                conversion_multiplier := NDX_MULTIPLIER
+            else
+                conversion_multiplier := QQQ_MULTIPLIER
         needs_conversion := true
+
 
 // ==================== PARAMÈTRES ====================
 string selected_dte = input.string("0DTE", "📅 DTE Period", options=["0DTE", "1DTE", "FULL"], group="🎯 Settings", tooltip="Days To Expiration")
